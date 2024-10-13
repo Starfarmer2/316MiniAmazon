@@ -122,3 +122,13 @@ database).  This file is NOT tracked by `git` and it was automatically
 generated when you first ran `./install.sh`.  Don't check it into
 `git` because your credentials would be exposed to everybody on GitLab
 if you are not careful.
+# 316MiniAmazon
+## Team members and roles:
+* Abhishek Chataut, Sellers Guru
+* Alice Hu, Users Guru
+* Daniel Zeng, Carts Guru
+* Jasper Hu, Products Guru
+* Muchang Bahng, Social Guru
+
+
+
