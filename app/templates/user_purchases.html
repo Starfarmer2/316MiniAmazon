@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>User Purchases</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Product ID</th>
+      <th>Quantity</th>
+      <th>Status</th>
+      <th>Purchase Date</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for purchase in purchases %}
+    <tr>
+      <td>{{ purchase[0] }}</td>
+      <td>{{ purchase[1] }}</td>
+      <td>{{ purchase[2] }}</td>
+      <td>{{ purchase[3] }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

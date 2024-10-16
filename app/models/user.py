@@ -67,3 +67,15 @@ WHERE id = :id
 """,
                               id=id)
         return User(*(rows[0])) if rows else None
+    
+    @staticmethod
+    def get_purchases(user_id):
+        rows = app.db.execute("""
+        SELECT p.name, pr.time_purchased 
+        FROM Purchases pr
+        JOIN Products p ON pr.pid = p.id
+        WHERE pr.uid = :user_id
+        ORDER BY pr.time_purchased DESC
+        """, user_id=user_id)
+
+        return rows if rows else None
