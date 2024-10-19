@@ -72,3 +72,11 @@ def register():
 def logout():
     logout_user()
     return redirect(url_for('index.index'))
+
+@bp.route('/user/<int:user_id>/purchases')
+def user_purchases(user_id):
+    purchases = User.get_purchases(user_id)
+    if not purchases:
+        flash(f'No purchases found for user with id {user_id}')
+        return render_template('user_purchases.html', purchases=[], user_id=user_id)
+    return render_template('user_purchases.html', purchases=purchases, user_id=user_id)
