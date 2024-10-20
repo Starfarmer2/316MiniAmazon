@@ -1,10 +1,11 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, abort, current_app as app
 from flask_login import current_user, login_required
 from flask_wtf import FlaskForm
 from wtforms import StringField, FloatField, IntegerField, TextAreaField, SubmitField
 from wtforms.validators import DataRequired, NumberRange
 from .models.product import Product
 from .models.product_review import ProductReview
+from .models.user import User
 
 bp = Blueprint('products', __name__)
 
@@ -24,11 +25,24 @@ def all_products():
 def product_detail(product_id):
     product = Product.get(product_id)
     if product is None:
-        flash('Product not found.')
-        return redirect(url_for('products.all_products'))
+        abort(404)
     
-    reviews = ProductReview.get_by_product(product_id)
-    return render_template('product_detail.html', product=product, reviews=reviews)
+    seller = User.get(product.sellerid) if product is not None else abort(404)
+
+    # Fetch reviews with reviewer names
+    reviews = app.db.execute('''
+        SELECT pr.productid, pr.buyerid, pr.dtime, pr.review, pr.rating,
+               u.firstname, u.lastname
+        FROM ProductReviews pr
+        JOIN Users u ON pr.buyerid = u.userid
+        WHERE pr.productid = :productid
+        ORDER BY pr.dtime DESC
+    ''', productid=product_id)
+
+    return render_template('product_detail.html', 
+                           product=product, 
+                           seller=seller,
+                           reviews=reviews)
 
 @bp.route('/add_product', methods=['GET', 'POST'])
 @login_required

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ profile_user.firstname }}'s Profile - Mamazon</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding-top: 20px;
+        }
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .profile-section, .reviews-section {
+            margin-bottom: 30px;
+        }
+        .review-item {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .review-item .rating {
+            font-size: 1.2em;
+            color: #f39c12;
+        }
+        .review-item .seller-info {
+            font-style: italic;
+            color: #6c757d;
+        }
+        .user-link {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .user-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mb-4">{{ profile_user.firstname }}'s Profile</h1>
+        
+        <div class="profile-section">
+            <h2>User Information</h2>
+            <ul class="list-group">
+                <li class="list-group-item"><strong>User ID:</strong> {{ profile_user.userid }}</li>
+                <li class="list-group-item"><strong>Name:</strong> 
+                    <a href="{{ url_for('users.user_profile', user_id=profile_user.userid) }}" class="user-link">
+                        {{ profile_user.firstname }} {{ profile_user.lastname }}
+                    </a>
+                </li>
+                <li class="list-group-item"><strong>Email:</strong> {{ profile_user.email }}</li>
+            </ul>
+        </div>
+
+        <div class="reviews-section">
+            <h2>Recent Reviews</h2>
+            
+            <h3>Product Reviews</h3>
+            {% if recent_product_reviews %}
+                {% for review in recent_product_reviews %}
+                    <div class="review-item">
+                        <h4>Product: 
+                            <a href="{{ review.product_url }}" class="product-link">
+                                {{ review.prodname }}
+                            </a> 
+                            (ID: {{ review.productid }})
+                        </h4>
+                        <p class="seller-info">Sold by: 
+                            <a href="{{ url_for('users.user_profile', user_id=review.sellerid) }}" class="user-link">
+                                {{ review.seller_firstname }} {{ review.seller_lastname }}
+                            </a> 
+                            (ID: {{ review.sellerid }})
+                        </p>
+                        <p class="rating">Rating: {{ '★' * review.rating }}{{ '☆' * (5 - review.rating) }}</p>
+                        <p><strong>Review:</strong> {{ review.review }}</p>
+                        <p class="text-muted">Date: {{ review.dtime.strftime('%Y-%m-%d %H:%M') }}</p>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No product reviews yet.</p>
+            {% endif %}
+
+            <h3>Seller Reviews</h3>
+            {% if recent_seller_reviews %}
+                {% for review_info in recent_seller_reviews %}
+                    <div class="review-item">
+                        <h4>Seller: 
+                            <a href="{{ url_for('users.user_profile', user_id=review_info.review.sellerid) }}" class="user-link">
+                                {{ review_info.seller_firstname }} {{ review_info.seller_lastname }}
+                            </a> 
+                            (ID: {{ review_info.review.sellerid }})
+                        </h4>
+                        <p class="rating">Rating: {{ '★' * review_info.review.rating }}{{ '☆' * (5 - review_info.review.rating) }}</p>
+                        <p><strong>Review:</strong> {{ review_info.review.review }}</p>
+                        <p class="text-muted">Date: {{ review_info.review.dtime.strftime('%Y-%m-%d %H:%M') }}</p>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No seller reviews yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</body>
+    </div>
+</body>
+</html>

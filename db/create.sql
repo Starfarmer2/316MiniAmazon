@@ -11,7 +11,8 @@ CREATE TABLE Users (
 CREATE TABLE Sellers (
   userid INT PRIMARY KEY REFERENCES Users(userid), 
   email VARCHAR(96) UNIQUE, 
-  name VARCHAR(96) NOT NULL, 
+  firstname VARCHAR(96) NOT NULL, 
+  lastname VARCHAR(96) NOT NULL, 
   address VARCHAR(255), 
   password CHAR(255) NOT NULL, 
   balance FLOAT NOT NULL CHECK(balance >= 0)

@@ -1,0 +1,6 @@
+0,mb625@duke.edu,Muchang,Bahng,Erwin Rd,pbkdf2:sha256:260000$1GvmeoAkcWb89TyU$5f711eafb243c1c1a884715dd9bd6d185f29ccd3dab59ad19cc201a7260091cb,1000
+1,john.doe@email.com,John,Doe,"123 Main St, Anytown, AN 12345",hashed_password_1,150.00
+2,jane.smith@email.com,Jane,Smith,"456 Elm St, Somewhere, SO 67890",hashed_password_2,220.50
+3,bob.johnson@email.com,Bob,Johnson,"789 Oak Rd, Nowhere, NO 13579",hashed_password_3,75.25
+4,alice.williams@email.com,Alice,Williams,"321 Pine Ave, Everywhere, EV 24680",hashed_password_4,300.00
+5,charlie.brown@email.com,Charlie,Brown,"654 Maple Dr, Anywhere, AN 97531",hashed_password_5,180.75

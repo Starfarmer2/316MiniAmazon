@@ -1,12 +1,14 @@
-from flask import render_template, redirect, url_for, flash, request
+from flask import render_template, redirect, url_for, flash, request, abort, current_app as app
 from werkzeug.urls import url_parse
 from flask_login import login_user, logout_user, current_user, login_required
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo
-
 from .models.user import User
-
+from .models.product_review import ProductReview
+from .models.sellerreview import SellerReview
+from .models.product import Product
+from collections import namedtuple
 
 from flask import Blueprint
 bp = Blueprint('users', __name__)
@@ -37,11 +39,15 @@ def login():
         return redirect(next_page)
     return render_template('login.html', title='Sign In', form=form)
 
-
 @bp.route('/account')
 @login_required
 def account():
-    return render_template('account.html', user=current_user)
+    recent_product_reviews = ProductReview.get_recent_by_user(current_user.userid)
+    recent_seller_reviews = SellerReview.get_recent_by_user(current_user.userid)
+    return render_template('account.html', 
+                           user=current_user, 
+                           recent_product_reviews=recent_product_reviews,
+                           recent_seller_reviews=recent_seller_reviews)
 
 class RegistrationForm(FlaskForm):
     firstname = StringField('First Name', validators=[DataRequired()])
@@ -110,3 +116,54 @@ def user_purchases(user_id):
     if not purchases:
         flash(f'No purchases found for your account')
     return render_template('user_purchases.html', purchases=purchases, user_id=user_id)
+
+@bp.route('/user/<int:user_id>/profile')
+@login_required
+def user_profile(user_id):
+    user = User.get(user_id)
+    if user is None:
+        abort(404)  # User not found
+    
+    # Create a named tuple for product reviews
+    ProductReviewInfo = namedtuple('ProductReviewInfo', [
+        'productid', 'buyerid', 'dtime', 'review', 'rating', 
+        'prodname', 'sellerid', 'seller_firstname', 'seller_lastname', 'product_url'
+    ])
+
+    # Fetch product reviews with product and seller info
+    product_reviews = app.db.execute('''
+        SELECT pr.productid, pr.buyerid, pr.dtime, pr.review, pr.rating, 
+               p.prodname, s.userid AS sellerid, s.firstname AS seller_firstname, s.lastname AS seller_lastname
+        FROM ProductReviews pr
+        JOIN Products p ON pr.productid = p.productid
+        JOIN Sellers s ON p.sellerid = s.userid
+        WHERE pr.buyerid = :user_id
+        ORDER BY pr.dtime DESC
+        LIMIT 5
+    ''', user_id=user_id)
+
+    # Create ProductReviewInfo objects with product URLs
+    recent_product_reviews = [
+        ProductReviewInfo(*review, product_url=url_for('products.product_detail', product_id=review[0]))
+        for review in product_reviews
+    ]
+
+    # Fetch seller reviews
+    seller_reviews = SellerReview.get_recent_by_user(user_id)
+
+    # Create a new named tuple to hold seller review info
+    SellerReviewInfo = namedtuple('SellerReviewInfo', ['review', 'seller_firstname', 'seller_lastname'])
+
+    # Fetch seller names for seller reviews and create new objects
+    recent_seller_reviews = []
+    for review in seller_reviews:
+        seller = User.get(review.sellerid)
+        seller_firstname = seller.firstname if seller else "Unknown"
+        seller_lastname = seller.lastname if seller else "Seller"
+        review_info = SellerReviewInfo(review, seller_firstname, seller_lastname)
+        recent_seller_reviews.append(review_info)
+
+    return render_template('user_profile.html', 
+                           profile_user=user,
+                           recent_product_reviews=recent_product_reviews,
+                           recent_seller_reviews=recent_seller_reviews)

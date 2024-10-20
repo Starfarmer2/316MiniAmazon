@@ -7,6 +7,7 @@ from .. import login
 
 class User(UserMixin):
     def __init__(self, userid, email, firstname, lastname, address, balance):
+        self.id = userid
         self.userid = userid
         self.email = email
         self.firstname = firstname
@@ -34,7 +35,7 @@ class User(UserMixin):
     @staticmethod
     def get_by_auth(email, password):
         rows = app.db.execute("""
-        SELECT password, userid, email, firstname, lastname
+        SELECT password, userid, email, firstname, lastname, address, balance
         FROM Users
         WHERE email = :email
         """, email=email)

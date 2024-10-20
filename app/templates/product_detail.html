@@ -74,6 +74,15 @@
         .stars {
             color: #ffc107;
         } 
+        .seller-info {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .seller-info h3 {
+            margin-top: 0;
+        }
     </style>
 </head>
 <body>
@@ -117,6 +126,14 @@
                         {% else %}
                             <a href="{{ url_for('users.login') }}" class="btn btn-primary">Log in to Purchase</a>
                         {% endif %}
+
+                        <!-- Add Seller Information -->
+                        <div class="seller-info">
+                            <h3>Seller Information</h3>
+                            <p><strong>Seller ID:</strong> {{ seller.userid }}</p>
+                            <p><strong>Seller Name:</strong> {{ seller.firstname }} {{ seller.lastname }}</p>
+                            <a href="{{ url_for('users.user_profile', user_id=seller.userid) }}" class="btn btn-info">View Seller Profile</a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -140,7 +157,9 @@
                                     <small>{{ review.dtime.strftime('%Y-%m-%d %H:%M') }}</small>
                                 </div>
                                 <p>{{ review.review }}</p>
-                                <small>By User {{ review.buyerid }}</small>
+                                <small>By <a href="{{ url_for('users.user_profile', user_id=review.buyerid) }}" class="user-link">
+                                    {{ review.firstname }} {{ review.lastname }}
+                                </a></small>
                             </div>
                         {% endfor %}
                     {% else %}
