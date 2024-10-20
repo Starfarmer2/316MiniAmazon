@@ -15,15 +15,23 @@ def checkout():
         return redirect(url_for('cart.view_cart'))
     
     if request.method == 'POST':
+        print('POST request received')  # Debugging line to check if POST request is received
         all_purchases_successful = True
+        
+        # Loop through cart items to process purchases
         for item in cart_items:
+            print(f'Processing purchase for product {item.productname} with quantity {item.quantity}')
             purchase, message = Purchase.create_purchase(current_user.userid, item.productid, item.quantity)
+            
+            # Handle error during purchase
             if not purchase:
                 flash(f'Error purchasing {item.productname}: {message}')
                 all_purchases_successful = False
                 break
         
+        # If all purchases are successful, clear the cart and redirect to purchase history
         if all_purchases_successful:
+            print('All purchases successful')  # Debugging line
             Cart.clear_cart(current_user.userid)
             flash('All items purchased successfully!')
             return redirect(url_for('users.user_purchases', user_id=current_user.userid))
@@ -32,6 +40,8 @@ def checkout():
 
     total = sum(item.unit_price * item.quantity for item in cart_items)
     return render_template('checkout.html', cart_items=cart_items, total=total)
+
+
 
 @bp.route('/order_confirmation/<purchase_time>')
 @login_required

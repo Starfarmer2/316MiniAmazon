@@ -13,44 +13,56 @@ class Purchase:
     def create_purchase(userid, productid, quantity):
         try:
             # Get user's balance
+            print(f"Fetching balance for user {userid}")
             user_balance_row = app.db.execute(
                 'SELECT balance FROM Users WHERE userid = :userid',
-                userid=userid
+                userid=userid  # Passing parameters directly
             )
             if not user_balance_row:
+                print("User not found")
                 return None, "User not found"
             user_balance = user_balance_row[0][0]
+            print(f"User balance: {user_balance}")
 
             # Get product details
+            print(f"Fetching product details for product {productid}")
             product_row = app.db.execute(
                 'SELECT price, quantity FROM Products WHERE productid = :productid',
-                productid=productid
+                productid=productid  # Passing parameters directly
             )
             if not product_row:
+                print("Product not found")
                 return None, "Product not found"
             product_price, product_quantity = product_row[0]
+            print(f"Product price: {product_price}, Available quantity: {product_quantity}")
 
             total_cost = product_price * quantity
+            print(f"Total cost for {quantity} units: {total_cost}")
 
             if user_balance < total_cost:
+                print("Insufficient funds")
                 return None, "Insufficient funds"
 
             if product_quantity < quantity:
+                print("Insufficient stock")
                 return None, "Insufficient stock"
 
             # Update user's balance
+            print(f"Updating user balance, deducting {total_cost}")
             app.db.execute(
                 'UPDATE Users SET balance = balance - :amount WHERE userid = :userid',
-                amount=total_cost, userid=userid
+                amount=total_cost, userid=userid  # Passing parameters directly
             )
 
             # Update product quantity
+            print(f"Updating product quantity, reducing by {quantity}")
             app.db.execute(
                 'UPDATE Products SET quantity = quantity - :quantity WHERE productid = :productid',
-                quantity=quantity, productid=productid
+                quantity=quantity, productid=productid  # Passing parameters directly
             )
 
             # Create purchase record
+            print(f"Creating purchase record for user {userid} and product {productid}")
             purchase_row = app.db.execute(
                 '''
                 INSERT INTO Purchases (productid, userid, dtime, quantity, status)
@@ -58,17 +70,21 @@ class Purchase:
                 RETURNING productid, userid, dtime, quantity, status
                 ''',
                 productid=productid, userid=userid, dtime=datetime.now(),
-                quantity=quantity, status=True
+                quantity=quantity, status=True  # Passing parameters directly
             )
 
             if purchase_row:
+                print("Purchase created successfully")
                 return Purchase(*purchase_row[0]), "Purchase successful"
             else:
+                print("Failed to create purchase record")
                 return None, "Failed to create purchase record"
 
         except Exception as e:
             print(f"Error creating purchase: {e}")
             return None, str(e)
+
+
 
     @staticmethod
     def get(productid, userid, dtime):

@@ -97,11 +97,12 @@
             <div class="purchase-grid">
                 {% for purchase in purchases %}
                     <div class="purchase-item">
-                        <p class="purchase-id">Product ID: {{ purchase[0] }}</p>
-                        <p>User ID: {{ purchase[1] }}</p>
-                        <p class="purchase-time">Purchase Time: {{ purchase[2] }}</p>
-                        <p>Quantity: {{ purchase[3] }}</p>
-                        <p>Status: {{ "Completed" if purchase[4] else "Pending" }}</p>
+                        <p class="purchase-id">Product: {{ purchase[1] }}</p> <!-- Product Name -->
+                        <p>Product ID: {{ purchase[0] }}</p> <!-- Product ID -->
+                        <p>Price: ${{ purchase[5] }}</p> <!-- Price -->
+                        <p class="purchase-time">Purchase Time: {{ purchase[2] }}</p> <!-- Purchase Time -->
+                        <p>Quantity: {{ purchase[3] }}</p> <!-- Quantity -->
+                        <p>Status: {{ "Completed" if purchase[4] else "Pending" }}</p> <!-- Status -->
                     </div>
                 {% endfor %}
             </div>

@@ -111,11 +111,23 @@ def user_purchases(user_id):
     if current_user.userid != user_id:
         flash('You can only view your own purchases.')
         return redirect(url_for('index.index'))
-    
-    purchases = User.get_purchases(user_id)
+
+    # Using positional parameters (%s) instead of named parameters
+    purchases = app.db.execute('''
+        SELECT p.productid, p.prodname, pu.dtime, pu.quantity, pu.status, p.price
+        FROM Purchases pu
+        JOIN Products p ON pu.productid = p.productid
+        WHERE pu.userid = :user_id
+    ''', user_id=user_id,)  # Pass user_id as a tuple
+
+
     if not purchases:
-        flash(f'No purchases found for your account')
-    return render_template('user_purchases.html', purchases=purchases, user_id=user_id)
+        flash(f'No purchases found for your account.')
+        return render_template('user_purchases.html', purchases=[])
+
+    return render_template('user_purchases.html', purchases=purchases)
+
+
 
 @bp.route('/user/<int:user_id>/profile')
 @login_required

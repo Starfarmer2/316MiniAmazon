@@ -32,3 +32,4 @@ JOIN Products pr ON p.productid = pr.productid
 WHERE p.userid = :userid AND p.dtime = :purchase_time
 ''', userid=userid, purchase_time=purchase_time)
         return [Purchase(*row) for row in rows]
+    
