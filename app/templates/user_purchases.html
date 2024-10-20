@@ -1,26 +1,117 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Orders - Mamazon</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <style>
+        body {
+            background-image: url(static/css/basketball.png);
+            position: relative;
+        }
+        .header {
+            padding: 15px 20px;
+            background-color: #f8f9fa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        #HeaderName {
+            text-decoration: none;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        #B_section {
+            width: 100%;
+            padding: 20px;
+            background-color: #f5f5f5;
+            box-shadow: 1px 1px 5px grey;
+        }
+        .B_section_title {
+            font-family: 'Open Sans', sans-serif;
+            text-align: center;
+            font-size: 40px;
+            margin-bottom: 20px;
+        }
+        .purchase-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+        .purchase-item {
+            width: 18%;
+            margin-bottom: 20px;
+            padding: 15px;
+            box-shadow: 1px 1px 5px grey;
+            background-color: white;
+        }
+        .purchase-id {
+            font-family: 'Open Sans', sans-serif;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 0;
+        }
+        .purchase-time {
+            color: #007bff;
+            text-align: center;
+        }
+        #footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+        }
+        @media screen and (max-width: 800px) {
+            .purchase-item {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a id="HeaderName" href="{{ url_for('index.index') }}" class="btn btn-outline-primary">Home</a>
+        <div class="header-buttons">
+            <a class="btn btn-outline-primary" href="{{ url_for('products.all_products') }}">All Products</a>
+            <a class="btn btn-outline-primary" href="{{ url_for('users.user_purchases', user_id=current_user.userid) }}">Your Orders</a>
+            <a class="btn btn-outline-primary" href="{{ url_for('cart.view_cart') }}">My Cart</a>
+            <a class="btn btn-outline-primary" href="{{ url_for('users.account') }}">Account</a>
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('users.logout') }}" class="btn btn-outline-primary">Log out</a>
+            {% else %}
+                <a href="{{ url_for('users.login') }}" class="btn btn-primary">Log in</a>
+            {% endif %}
+        </div>
+    </div>
 
-{% block content %}
-<h2>User Purchases</h2>
+    <div id="B_section">
+        <h2 class="B_section_title">Your Purchase History</h2>
+        {% if purchases %}
+            <div class="purchase-grid">
+                {% for purchase in purchases %}
+                    <div class="purchase-item">
+                        <p class="purchase-id">Product ID: {{ purchase[0] }}</p>
+                        <p>User ID: {{ purchase[1] }}</p>
+                        <p class="purchase-time">Purchase Time: {{ purchase[2] }}</p>
+                        <p>Quantity: {{ purchase[3] }}</p>
+                        <p>Status: {{ "Completed" if purchase[4] else "Pending" }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-center">You haven't made any purchases yet. <a href="{{ url_for('products.all_products') }}">Start shopping now!</a></p>
+        {% endif %}
+    </div>
 
-<table>
-  <thead>
-    <tr>
-      <th>Product ID</th>
-      <th>Quantity</th>
-      <th>Status</th>
-      <th>Purchase Date</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for purchase in purchases %}
-    <tr>
-      <td>{{ purchase[0] }}</td>
-      <td>{{ purchase[1] }}</td>
-      <td>{{ purchase[2] }}</td>
-      <td>{{ purchase[3] }}</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
-{% endblock %}
+    <div id="footer">
+        <p>&copy; 2024 Mamazon. All rights reserved.</p>
+    </div>
+</body>
+</html>

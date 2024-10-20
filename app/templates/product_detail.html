@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ product.prodname }} - Mamazon</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            background-image: url(static/css/Pictures/background.png);
+            position: relative;
+            padding-top: 70px;
+        }
+        .header {
+            padding: 15px 20px;
+            background-color: #f8f9fa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0,0,0,.1);
+        }
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        #HeaderName {
+            text-decoration: none;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        #B_section {
+            width: 100%;
+            padding: 20px;
+            background-color: #f5f5f5;
+            box-shadow: 1px 1px 5px grey;
+        }
+        .product-image {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 20px;
+        }
+        .product-info {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        #footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            margin-top: 20px;
+        }
+       .review {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .stars {
+            color: #ffc107;
+        } 
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a id="HeaderName" href="{{ url_for('index.index') }}" class="btn btn-outline-primary">Home</a>
+        <div class="header-buttons">
+            <a class="btn btn-outline-primary" href="{{ url_for('products.all_products') }}">All Products</a>
+            {% if current_user.is_authenticated %}
+                <a class="btn btn-outline-primary" href="{{ url_for('users.user_purchases', user_id=current_user.userid) }}">Your Orders</a>
+                <a class="btn btn-outline-primary" href="{{ url_for('cart.view_cart') }}">My Cart</a>
+                <a class="btn btn-outline-primary" href="{{ url_for('users.account') }}">Account</a>
+                <a href="{{ url_for('users.logout') }}" class="btn btn-outline-primary">Log out</a>
+            {% else %}
+                <a href="{{ url_for('users.login') }}" class="btn btn-primary">Log in</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div id="B_section">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <img src="{{ product.imagepath }}" alt="{{ product.prodname }}" class="product-image">
+                </div>
+                <div class="col-md-6">
+                    <div class="product-info">
+                        <h1>{{ product.prodname }}</h1>
+                        <p><strong>Category:</strong> {{ product.category }}</p>
+                        <p><strong>Price:</strong> ${{ "%.2f"|format(product.price) }}</p>
+                        <p><strong>Available Quantity:</strong> {{ product.quantity }}</p>
+                        <p><strong>Description:</strong> {{ product.description }}</p>
+                        
+                        {% if current_user.is_authenticated %}
+                            <form action="{{ url_for('cart.add_to_cart', product_id=product.productid) }}" method="POST">
+                                <div class="form-group">
+                                    <label for="quantity">Quantity:</label>
+                                    <input type="number" id="quantity" name="quantity" value="1" min="1" max="{{ product.quantity }}" class="form-control" style="width: 100px;">
+                                </div>
+                                <button type="submit" class="btn btn-primary">Add to Cart</button>
+                            </form>
+                        {% else %}
+                            <a href="{{ url_for('users.login') }}" class="btn btn-primary">Log in to Purchase</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Reviews Section -->
+            <div class="row mt-5">
+                <div class="col-12">
+                    <h2>Product Reviews</h2>
+                    {% if reviews %}
+                        {% for review in reviews %}
+                            <div class="review">
+                                <div class="review-header">
+                                    <div class="stars">
+                                        {% for _ in range(review.rating) %}
+                                            <i class="fas fa-star"></i>
+                                        {% endfor %}
+                                        {% for _ in range(5 - review.rating) %}
+                                            <i class="far fa-star"></i>
+                                        {% endfor %}
+                                    </div>
+                                    <small>{{ review.dtime.strftime('%Y-%m-%d %H:%M') }}</small>
+                                </div>
+                                <p>{{ review.review }}</p>
+                                <small>By User {{ review.buyerid }}</small>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p>No reviews yet. Be the first to review this product!</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="footer">
+        <p>&copy; 2024 Mamazon. All rights reserved.</p>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // Prevent negative quantities
+            $('input[type="number"]').on('input', function() {
+                if ($(this).val() < 1) {
+                    $(this).val(1);
+                }
+                if ($(this).val() > {{ product.quantity }}) {
+                    $(this).val({{ product.quantity }});
+                }
+            });
+        });
+    </script>
+</body>
+</html>

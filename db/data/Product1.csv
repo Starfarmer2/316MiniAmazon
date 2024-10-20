@@ -1,0 +1,12 @@
+1,0,wallet,wallet,/img/wallet.png,3.77,40,accessories
+2,0,ice cream,vanilla flavor,/img/ice_cream.png,1.00,39,food
+3,1,laptop,15-inch ultrabook,/img/laptop.png,899.99,15,electronics
+4,2,running shoes,breathable mesh design,/img/running_shoes.png,79.99,50,clothing
+5,1,smartphone,latest model with 5G,/img/smartphone.png,699.99,25,electronics
+6,3,cookbook,100 easy recipes,/img/cookbook.png,24.99,100,books
+7,2,water bottle,insulated stainless steel,/img/water_bottle.png,19.99,200,accessories
+8,4,garden hose,50ft flexible hose,/img/garden_hose.png,34.99,30,home_and_garden
+9,3,dog food,premium dry kibble,/img/dog_food.png,45.99,75,pet_supplies
+10,4,sunglasses,UV protection polarized,/img/sunglasses.png,59.99,60,accessories
+11,5,backpack,waterproof hiking backpack,/img/backpack.png,89.99,40,outdoor
+12,5,coffee maker,12-cup programmable,/img/coffee_maker.png,49.99,20,appliances

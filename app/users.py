@@ -1,6 +1,6 @@
 from flask import render_template, redirect, url_for, flash, request
 from werkzeug.urls import url_parse
-from flask_login import login_user, logout_user, current_user
+from flask_login import login_user, logout_user, current_user, login_required
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo
@@ -38,6 +38,11 @@ def login():
     return render_template('login.html', title='Sign In', form=form)
 
 
+@bp.route('/account')
+@login_required
+def account():
+    return render_template('account.html', user=current_user)
+
 class RegistrationForm(FlaskForm):
     firstname = StringField('First Name', validators=[DataRequired()])
     lastname = StringField('Last Name', validators=[DataRequired()])
@@ -73,10 +78,35 @@ def logout():
     logout_user()
     return redirect(url_for('index.index'))
 
+@bp.route('/deposit', methods=['POST'])
+@login_required
+def deposit():
+    amount = float(request.form['amount'])
+    current_user.balance += amount
+    current_user.save()
+    flash(f'Successfully deposited ${amount:.2f}')
+    return redirect(url_for('users.account'))
+
+@bp.route('/withdraw', methods=['POST'])
+@login_required
+def withdraw():
+    amount = float(request.form['amount'])
+    if amount <= current_user.balance:
+        current_user.balance -= amount
+        current_user.save()
+        flash(f'Successfully withdrew ${amount:.2f}')
+    else:
+        flash('Insufficient funds')
+    return redirect(url_for('users.account'))
+
 @bp.route('/user/<int:user_id>/purchases')
+@login_required
 def user_purchases(user_id):
+    if current_user.userid != user_id:
+        flash('You can only view your own purchases.')
+        return redirect(url_for('index.index'))
+    
     purchases = User.get_purchases(user_id)
     if not purchases:
-        flash(f'No purchases found for user with id {user_id}')
-        return render_template('user_purchases.html', purchases=[], user_id=user_id)
+        flash(f'No purchases found for your account')
     return render_template('user_purchases.html', purchases=purchases, user_id=user_id)

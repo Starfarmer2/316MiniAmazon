@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Account - Mamazon</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding-top: 70px; /* Added to accommodate fixed header */
+        }
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .balance-section, .profile-section {
+            margin-bottom: 30px;
+        }
+        .balance-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .header {
+            padding: 15px 20px;
+            background-color: #f8f9fa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0,0,0,.1);
+        }
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        #HeaderName {
+            text-decoration: none;
+            font-size: 24px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a id="HeaderName" href="{{ url_for('index.index') }}" class="btn btn-outline-primary">Home</a>
+        <div class="header-buttons">
+            <a class="btn btn-outline-primary" href="{{ url_for('products.all_products') }}">All Products</a>
+            <a class="btn btn-outline-primary" href="{{ url_for('users.user_purchases', user_id=current_user.userid) }}">Your Orders</a>
+            <a class="btn btn-outline-primary" href="{{ url_for('cart.view_cart') }}">My Cart</a>
+            <a class="btn btn-outline-primary" href="{{ url_for('users.account') }}">Account</a>
+            <a href="{{ url_for('users.logout') }}" class="btn btn-outline-primary">Log out</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1 class="mb-4">My Account</h1>
+        
+        <div class="balance-section">
+            <h2>Current Balance</h2>
+            <p class="lead">${{ "%.2f"|format(current_user.balance) }}</p>
+            <div class="balance-actions">
+                <button class="btn btn-primary" data-toggle="modal" data-target="#depositModal">Deposit</button>
+                <button class="btn btn-secondary" data-toggle="modal" data-target="#withdrawModal">Withdraw</button>
+            </div>
+        </div>
+
+        <div class="profile-section">
+            <h2>My Profile</h2>
+            <ul class="list-group">
+                <li class="list-group-item"><strong>User ID:</strong> {{ current_user.userid }}</li>
+                <li class="list-group-item"><strong>Email:</strong> {{ current_user.email }}</li>
+                <li class="list-group-item"><strong>First Name:</strong> {{ current_user.firstname }}</li>
+                <li class="list-group-item"><strong>Last Name:</strong> {{ current_user.lastname }}</li>
+                <li class="list-group-item"><strong>Address:</strong> {{ current_user.address }}</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Deposit Modal -->
+    <div class="modal fade" id="depositModal" tabindex="-1" role="dialog" aria-labelledby="depositModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="depositModalLabel">Deposit Money</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form action="{{ url_for('users.deposit') }}" method="POST">
+                        <div class="form-group">
+                            <label for="depositAmount">Amount</label>
+                            <input type="number" class="form-control" id="depositAmount" name="amount" min="0.01" step="0.01" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Deposit</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Withdraw Modal -->
+    <div class="modal fade" id="withdrawModal" tabindex="-1" role="dialog" aria-labelledby="withdrawModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="withdrawModalLabel">Withdraw Money</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form action="{{ url_for('users.withdraw') }}" method="POST">
+                        <div class="form-group">
+                            <label for="withdrawAmount">Amount</label>
+                            <input type="number" class="form-control" id="withdrawAmount" name="amount" min="0.01" step="0.01" max="{{ current_user.balance }}" required>
+                        </div>
+                        <button type="submit" class="btn btn-secondary">Withdraw</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

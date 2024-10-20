@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mamazon</title>
+    <title>All Products - Mamazon</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
@@ -28,36 +28,6 @@
             font-size: 24px;
             font-weight: bold;
         }
-        #intro_section {
-            width: 100%;
-            height: 100vh;
-            background-image: url(static/css/Duke_Chapel.jpg);
-            background-size: cover;
-            background-attachment: fixed;
-            background-position: top left;
-            box-shadow: 10px 10px 100px rgb(8, 8, 8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        #intro_text {
-            text-align: center;
-        }
-        #intro_myName {
-            color: #ffffff;
-            font-family: 'Work Sans', sans-serif;
-            text-shadow: 2px 2px 5px black;
-            font-size: 64px;
-            margin: 0;
-        }
-        #intro_Hi_im {
-            color: #ffffff;
-            font-family: Open Sans;
-            font-style: italic;
-            text-shadow: 1px 1px 3px black;
-            font-size: 28px;
-            margin: 0;
-        }
         #B_section {
             width: 100%;
             padding: 20px;
@@ -70,31 +40,28 @@
             font-size: 40px;
             margin-bottom: 20px;
         }
-        .product-grid, .purchase-grid {
+        .product-grid {
             display: flex;
             flex-wrap: wrap;
             justify-content: space-between;
         }
-        .product-item, .purchase-item {
+        .product-item {
             width: 18%;
             margin-bottom: 20px;
             padding: 15px;
             box-shadow: 1px 1px 5px grey;
             background-color: white;
         }
-        .product-name, .purchase-id {
+        .product-name {
             font-family: 'Open Sans', sans-serif;
             text-align: center;
             font-size: 18px;
             font-weight: bold;
             margin-top: 0;
         }
-        .product-price, .purchase-time {
+        .product-price {
             color: #007bff;
             text-align: center;
-        }
-        .space {
-            height: 30px;
         }
         #footer {
             background-color: #f8f9fa;
@@ -102,7 +69,7 @@
             text-align: center;
         }
         @media screen and (max-width: 800px) {
-            .product-item, .purchase-item {
+            .product-item {
                 width: 100%;
             }
         }
@@ -113,10 +80,10 @@
         <a id="HeaderName" href="{{ url_for('index.index') }}" class="btn btn-outline-primary">Home</a>
         <div class="header-buttons">
             <a class="btn btn-outline-primary" href="{{ url_for('products.all_products') }}">All Products</a>
+            <a class="btn btn-outline-primary" href="{{ url_for('users.user_purchases', user_id=current_user.userid) }}">Your Orders</a>
+            <a class="btn btn-outline-primary" href="{{ url_for('cart.view_cart') }}">My Cart</a>
+            <a class="btn btn-outline-primary" href="{{ url_for('users.account') }}">Account</a>
             {% if current_user.is_authenticated %}
-                <a class="btn btn-outline-primary" href="{{ url_for('users.user_purchases', user_id=current_user.userid) }}">Your Orders</a>
-                <a class="btn btn-outline-primary" href="{{ url_for('cart.view_cart') }}">My Cart</a>
-                <a class="btn btn-outline-primary" href="{{ url_for('users.account') }}">Account</a>
                 <a href="{{ url_for('users.logout') }}" class="btn btn-outline-primary">Log out</a>
             {% else %}
                 <a href="{{ url_for('users.login') }}" class="btn btn-primary">Log in</a>
@@ -124,47 +91,29 @@
         </div>
     </div>
 
-    <div id="intro_section">
-        <div id="intro_text">
-            <p id="intro_myName">Mamazon</p>
-            <p id="intro_Hi_im">The Mini-Amazon for Duke Students!</p>
-        </div>
-    </div>
-
     <div id="B_section">
-        <p class="B_section_title">Products for sale:</p>
+        <h1 class="B_section_title">All Products</h1>
         <div class="product-grid">
-            {% for product in avail_products %}
+            {% for product in products %}
                 <div class="product-item">
                     <p class="product-name">{{ product.prodname }}</p>
                     <p>ID: {{ product.productid }}</p>
-                    <p class="product-price">${{ product.price }}</p>
+                    <p class="product-price">${{ "%.2f"|format(product.price) }}</p>
+                    <p>{{ product.description }}</p>
+                    <a href="{{ url_for('products.product_detail', product_id=product.productid) }}" class="btn btn-primary">View Details</a>
+                    {% if current_user.is_authenticated %}
+                        <form action="{{ url_for('cart.add_to_cart', product_id=product.productid) }}" method="POST">
+                            <input type="number" name="quantity" value="1" min="1" max="{{ product.quantity }}" class="form-control mb-2">
+                            <button type="submit" class="btn btn-success">Add to Cart</button>
+                        </form>
+                    {% endif %}
                 </div>
             {% endfor %}
         </div>
     </div>
 
-    <div class="space"></div>
-
-    <div id="B_section">
-        {% if current_user.is_authenticated %}
-            <h2 class="B_section_title">Your recent purchases:</h2>
-            <div class="purchase-grid">
-                {% for purchase in purchase_history %}
-                    <div class="purchase-item">
-                        <p class="purchase-id">Purchase ID: {{ purchase.id }}</p>
-                        <p>Product: {{ purchase.pid }}</p>
-                        <p class="purchase-time">{{ purchase.time_purchased }}</p>
-                    </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <p><a href="{{ url_for('users.login') }}">Log in</a> to see your purchase history!</p>
-        {% endif %}
-    </div>
-
     <div id="footer">
-        <p id="footer_text"></p>
+        <p>&copy; 2024 Mamazon. All rights reserved.</p>
     </div>
 </body>
 </html>
