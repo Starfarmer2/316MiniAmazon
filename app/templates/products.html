@@ -156,15 +156,20 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            // All the product boxes displayed
+            const productItems = document.querySelectorAll('.product-item');
+            
+            // The input text boxes
             const searchInput = document.getElementById('search-input');
             const sellerSearchInput = document.getElementById('seller-search-input');
-            const productItems = document.querySelectorAll('.product-item');
-
-            function fetchFilteredPurchases() {
+            
+            // Function to handle async rendering of products to display based on inputs in the two text boxes
+            function fetchFilteredProducts() {
                 const sellerSearchTerm = sellerSearchInput.value.toLowerCase();
                 const productSearchTerm = searchInput.value.toLowerCase();
-
-                fetch('/filter-purchases', {
+                
+                // backend API endpoint
+                fetch('/filter-products', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -181,14 +186,11 @@
 
                         // Loop through all product items and display/hide based on filtered IDs
                         productItems.forEach(item => {
-                            const productIdElement = item.querySelector('.product-id'); // Correctly select the product-id element
+                            const productIdElement = item.querySelector('.product-id');
 
                             // Get the text content and trim any extra whitespace
-                            const productIdText = productIdElement.textContent.trim(); // Ensure there's no extra whitespace
-
-                            // Extract the numeric part of the product ID
-                            const productId = parseInt(productIdText.split(': ')[1]); // Split and parse the ID
-
+                            const productIdText = productIdElement.textContent.trim();
+                            const productId = parseInt(productIdText.split(': ')[1]); // Split and parse the ID as int
 
                             // Check if the product ID is in the filtered IDs
                             if (filteredIds.has(parseInt(productId))) {
@@ -200,8 +202,8 @@
                     })
                     .catch(error => console.error('Error:', error));
             }
-            sellerSearchInput.addEventListener('input', fetchFilteredPurchases);
-            searchInput.addEventListener('input', fetchFilteredPurchases);
+            sellerSearchInput.addEventListener('input', fetchFilteredProducts);
+            searchInput.addEventListener('input', fetchFilteredProducts);
         });
     </script>
 </body>

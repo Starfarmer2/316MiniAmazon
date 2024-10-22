@@ -101,8 +101,9 @@ def search_products():
     products = Product.search(query)
     return render_template('search_results.html', products=products, query=query)
 
-@bp.route('/filter-purchases', methods=['POST'])
-def filter_purchases():
+# API end point for filtering products based on name and seller, not a real url link
+@bp.route('/filter-products', methods=['POST'])
+def filter_products():
     # Get JSON data from the request
     data = request.json
     seller_search_term = data.get('sellerSearchTerm', '').lower()
@@ -121,7 +122,7 @@ def filter_purchases():
         products = [product for product in products if product_search_term in product.prodname.lower()]
 
 
-    # Convert the query results into a list of dictionaries
+    # Convert the query results into a list of dictionaries, only need to provide id. Includes the other two for debugging
     product_list = [
         {
             "id": product.productid,
