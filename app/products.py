@@ -108,6 +108,7 @@ def filter_products():
     data = request.json
     seller_search_term = data.get('sellerSearchTerm', '').lower()
     product_search_term = data.get('productSearchTerm', '').lower()
+    top_k = data.get('topK', 10)
 
 
     # Initialize a base query for products
@@ -120,6 +121,10 @@ def filter_products():
     #Now filter that on product search term if provided through list comprehension
     if product_search_term:
         products = [product for product in products if product_search_term in product.prodname.lower()]
+
+    # Get top K most expensive products
+    if top_k:
+        products = sorted(products, key=lambda x: x.price, reverse=True)[:top_k]
 
 
     # Convert the query results into a list of dictionaries, only need to provide id. Includes the other two for debugging
