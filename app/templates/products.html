@@ -94,7 +94,8 @@
         }
 
         #search-input,
-        #seller-search-input {
+        #seller-search-input,
+        #top-k-input {
             width: 300px;
             padding: 10px;
             font-size: 16px;
@@ -128,6 +129,7 @@
         <div class="search-container">
             <input type="text" id="search-input" placeholder="Search products by name...">
             <input type="text" id="seller-search-input" placeholder="Search products by seller...">
+            <input type="number" id="top-k-input" placeholder="Top K most expensive products">
         </div>
         <div class="product-grid">
             {% for product in products %}
@@ -162,11 +164,13 @@
             // The input text boxes
             const searchInput = document.getElementById('search-input');
             const sellerSearchInput = document.getElementById('seller-search-input');
+            const topKInput = document.getElementById('top-k-input');
             
             // Function to handle async rendering of products to display based on inputs in the two text boxes
             function fetchFilteredProducts() {
                 const sellerSearchTerm = sellerSearchInput.value.toLowerCase();
                 const productSearchTerm = searchInput.value.toLowerCase();
+                const topK = topKInput.value;
                 
                 // backend API endpoint
                 fetch('/filter-products', {
@@ -176,7 +180,8 @@
                     },
                     body: JSON.stringify({
                         sellerSearchTerm: sellerSearchTerm,
-                        productSearchTerm: productSearchTerm
+                        productSearchTerm: productSearchTerm,
+                        topK: topK
                     })
                 })
                     .then(response => response.json())
