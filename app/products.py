@@ -123,8 +123,13 @@ def filter_products():
         products = [product for product in products if product_search_term in product.prodname.lower()]
 
     # Get top K most expensive products
-    if top_k:
-        products = sorted(products, key=lambda x: x.price, reverse=True)[:int(top_k)]
+    if top_k:    
+        products = app.db.execute('''
+            SELECT * FROM Products
+            ORDER BY price DESC
+            LIMIT :top_k
+        ''', top_k=top_k)
+        # products = sorted(products, key=lambda x: x.price, reverse=True)[:int(top_k)]
 
 
     # Convert the query results into a list of dictionaries, only need to provide id. Includes the other two for debugging
