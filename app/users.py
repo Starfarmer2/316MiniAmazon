@@ -138,7 +138,7 @@ def user_profile(user_id):
     
     # Fetch seller's products if the user is a seller
     seller_products = []
-    seller_products = Seller.get_seller_products(user_id)
+    seller_products = seller.get_seller_products(user_id)
 
     # Fetch product reviews (same as before)
     ProductReviewInfo = namedtuple('ProductReviewInfo', [
@@ -183,7 +183,7 @@ def user_profile(user_id):
 def get_seller_products_api(sellerid):
     try:
         # Call the function to get the seller's products
-        products = Seller.get_seller_products(sellerid)
+        products = seller.get_seller_products(sellerid)
 
         # Return the products in JSON format
         return jsonify(products), 200
