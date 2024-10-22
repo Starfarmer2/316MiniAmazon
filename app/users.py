@@ -135,6 +135,14 @@ def user_profile(user_id):
     user = User.get(user_id)
     if user is None:
         abort(404)  # User not found
+
+    # Fetch products sold by userId
+    products = app.db.execute('''
+        SELECT productid, prodname, price, quantity
+        FROM Products
+        WHERE sellerid = :user_id
+    ''', user_id=user_id)
+
     
     # Create a named tuple for product reviews
     ProductReviewInfo = namedtuple('ProductReviewInfo', [
@@ -178,4 +186,5 @@ def user_profile(user_id):
     return render_template('user_profile.html', 
                            profile_user=user,
                            recent_product_reviews=recent_product_reviews,
-                           recent_seller_reviews=recent_seller_reviews)
+                           recent_seller_reviews=recent_seller_reviews,
+                           products=products)
