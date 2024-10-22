@@ -138,7 +138,7 @@ def user_profile(user_id):
 
     # Fetch products sold by userId
     products = app.db.execute('''
-        SELECT productid, prodname, price, quantity
+        SELECT productid, prodname, price, quantity, category, imagepath, description, sellerid
         FROM Products
         WHERE sellerid = :user_id
     ''', user_id=user_id)
