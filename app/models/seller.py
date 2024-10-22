@@ -10,3 +10,16 @@ class Seller:
         self.password = password
         self.balance = balance
 
+    @staticmethod
+    def get_seller_products(sellerid):
+        try:
+            rows = app.db.execute('''
+            SELECT ProductID, SellerID, ProdName, Description, Image_Path, Price, Quantity, Category
+            FROM Product
+            WHERE SellerID = :sellerid
+            ''', sellerid=sellerid)
+            return [row for row in rows]
+
+        except Exception as e:
+            print(f"Error finding seller's products: {e}")
+            return False
