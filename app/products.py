@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, abort, current_app as app
+from flask import Blueprint, jsonify, render_template, redirect, url_for, flash, request, abort, current_app as app
 from flask_login import current_user, login_required
 from flask_wtf import FlaskForm
 from wtforms import StringField, FloatField, IntegerField, TextAreaField, SubmitField
@@ -100,3 +100,36 @@ def search_products():
     query = request.args.get('query', '')
     products = Product.search(query)
     return render_template('search_results.html', products=products, query=query)
+
+@bp.route('/filter-purchases', methods=['POST'])
+def filter_purchases():
+    # Get JSON data from the request
+    data = request.json
+    seller_search_term = data.get('sellerSearchTerm', '').lower()
+    product_search_term = data.get('productSearchTerm', '').lower()
+
+
+    # Initialize a base query for products
+    products = Product.get_all()  # Get all products
+
+    # Filter by seller name if the term is provided
+    if seller_search_term:
+        products = Product.filter_by_seller(seller_search_term)
+
+    #Now filter that on product search term if provided through list comprehension
+    if product_search_term:
+        products = [product for product in products if product_search_term in product.prodname.lower()]
+
+
+    # Convert the query results into a list of dictionaries
+    product_list = [
+        {
+            "id": product.productid,
+            "name": product.prodname,
+            "sellerid": product.sellerid,
+        }
+        for product in products
+    ]
+
+    # Return the list as a JSON response
+    return jsonify(product_list)

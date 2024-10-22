@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,6 +13,7 @@
             background-image: url(static/css/basketball.png);
             position: relative;
         }
+
         .header {
             padding: 15px 20px;
             background-color: #f8f9fa;
@@ -19,32 +21,38 @@
             justify-content: space-between;
             align-items: center;
         }
+
         .header-buttons {
             display: flex;
             gap: 10px;
         }
+
         #HeaderName {
             text-decoration: none;
             font-size: 24px;
             font-weight: bold;
         }
+
         #B_section {
             width: 100%;
             padding: 20px;
             background-color: #f5f5f5;
             box-shadow: 1px 1px 5px grey;
         }
+
         .B_section_title {
             font-family: 'Open Sans', sans-serif;
             text-align: center;
             font-size: 40px;
             margin-bottom: 20px;
         }
+
         .product-grid {
             display: flex;
             flex-wrap: wrap;
             justify-content: space-between;
         }
+
         .product-item {
             width: 18%;
             margin-bottom: 20px;
@@ -52,6 +60,7 @@
             box-shadow: 1px 1px 5px grey;
             background-color: white;
         }
+
         .product-name {
             font-family: 'Open Sans', sans-serif;
             text-align: center;
@@ -59,26 +68,33 @@
             font-weight: bold;
             margin-top: 0;
         }
+
         .product-price {
             color: #007bff;
             text-align: center;
         }
+
         #footer {
             background-color: #f8f9fa;
             padding: 20px;
             text-align: center;
         }
+
         @media screen and (max-width: 800px) {
             .product-item {
                 width: 100%;
             }
         }
+
         .search-container {
             margin-bottom: 20px;
             display: flex;
             justify-content: center;
+            gap: 10px;
         }
-        #search-input {
+
+        #search-input,
+        #seller-search-input {
             width: 300px;
             padding: 10px;
             font-size: 16px;
@@ -87,20 +103,22 @@
         }
     </style>
 </head>
+
 <body>
     <div class="header">
         <a id="HeaderName" href="{{ url_for('index.index') }}" class="btn btn-outline-primary">Home</a>
         <div class="header-buttons">
             <a class="btn btn-outline-primary" href="{{ url_for('products.all_products') }}">All Products</a>
             {% if current_user.is_authenticated %}
-                <a class="btn btn-outline-primary" href="{{ url_for('users.user_purchases', user_id=current_user.userid) }}">Your Orders</a>
+            <a class="btn btn-outline-primary"
+                href="{{ url_for('users.user_purchases', user_id=current_user.userid) }}">Your Orders</a>
             {% endif %}
             <a class="btn btn-outline-primary" href="{{ url_for('cart.view_cart') }}">My Cart</a>
             <a class="btn btn-outline-primary" href="{{ url_for('users.account') }}">Account</a>
             {% if current_user.is_authenticated %}
-                <a href="{{ url_for('users.logout') }}" class="btn btn-outline-primary">Log out</a>
+            <a href="{{ url_for('users.logout') }}" class="btn btn-outline-primary">Log out</a>
             {% else %}
-                <a href="{{ url_for('users.login') }}" class="btn btn-primary">Log in</a>
+            <a href="{{ url_for('users.login') }}" class="btn btn-primary">Log in</a>
             {% endif %}
         </div>
     </div>
@@ -109,22 +127,25 @@
         <h1 class="B_section_title">All Products</h1>
         <div class="search-container">
             <input type="text" id="search-input" placeholder="Search products by name...">
+            <input type="text" id="seller-search-input" placeholder="Search products by seller...">
         </div>
         <div class="product-grid">
             {% for product in products %}
-                <div class="product-item">
-                    <p class="product-name">{{ product.prodname }}</p>
-                    <p>ID: {{ product.productid }}</p>
-                    <p class="product-price">${{ "%.2f"|format(product.price) }}</p>
-                    <p>{{ product.description }}</p>
-                    <a href="{{ url_for('products.product_detail', product_id=product.productid) }}" class="btn btn-primary">View Details</a>
-                    {% if current_user.is_authenticated %}
-                        <form action="{{ url_for('cart.add_to_cart', product_id=product.productid) }}" method="POST">
-                            <input type="number" name="quantity" value="1" min="1" max="{{ product.quantity }}" class="form-control mb-2">
-                            <button type="submit" class="btn btn-success">Add to Cart</button>
-                        </form>
-                    {% endif %}
-                </div>
+            <div class="product-item">
+                <p class="product-name">{{ product.prodname }}</p>
+                <p class="product-id">ID: {{ product.productid }}</p>
+                <p class="product-price">${{ "%.2f"|format(product.price) }}</p>
+                <p>{{ product.description }}</p>
+                <a href="{{ url_for('products.product_detail', product_id=product.productid) }}"
+                    class="btn btn-primary">View Details</a>
+                {% if current_user.is_authenticated %}
+                <form action="{{ url_for('cart.add_to_cart', product_id=product.productid) }}" method="POST">
+                    <input type="number" name="quantity" value="1" min="1" max="{{ product.quantity }}"
+                        class="form-control mb-2">
+                    <button type="submit" class="btn btn-success">Add to Cart</button>
+                </form>
+                {% endif %}
+            </div>
             {% endfor %}
         </div>
     </div>
@@ -134,23 +155,55 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const searchInput = document.getElementById('search-input');
+            const sellerSearchInput = document.getElementById('seller-search-input');
             const productItems = document.querySelectorAll('.product-item');
 
-            searchInput.addEventListener('input', function() {
-                const searchTerm = this.value.toLowerCase();
+            function fetchFilteredPurchases() {
+                const sellerSearchTerm = sellerSearchInput.value.toLowerCase();
+                const productSearchTerm = searchInput.value.toLowerCase();
 
-                productItems.forEach(item => {
-                    const productName = item.querySelector('.product-name').textContent.toLowerCase();
-                    if (productName.includes(searchTerm)) {
-                        item.style.display = '';
-                    } else {
-                        item.style.display = 'none';
-                    }
-                });
-            });
+                fetch('/filter-purchases', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        sellerSearchTerm: sellerSearchTerm,
+                        productSearchTerm: productSearchTerm
+                    })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Create a Set of filtered product IDs from the response
+                        const filteredIds = new Set(data.map(purchase => purchase.id));
+
+                        // Loop through all product items and display/hide based on filtered IDs
+                        productItems.forEach(item => {
+                            const productIdElement = item.querySelector('.product-id'); // Correctly select the product-id element
+
+                            // Get the text content and trim any extra whitespace
+                            const productIdText = productIdElement.textContent.trim(); // Ensure there's no extra whitespace
+
+                            // Extract the numeric part of the product ID
+                            const productId = parseInt(productIdText.split(': ')[1]); // Split and parse the ID
+
+
+                            // Check if the product ID is in the filtered IDs
+                            if (filteredIds.has(parseInt(productId))) {
+                                item.style.display = ''; // Show item if its ID is in the Set
+                            } else {
+                                item.style.display = 'none'; // Hide item if its ID is not in the Set
+                            }
+                        });
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
+            sellerSearchInput.addEventListener('input', fetchFilteredPurchases);
+            searchInput.addEventListener('input', fetchFilteredPurchases);
         });
     </script>
 </body>
+
 </html>

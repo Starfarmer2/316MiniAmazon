@@ -95,16 +95,46 @@ class Product:
             print(f"Error deleting product: {e}")
             return False
 
+    #Not in use currently
     @staticmethod
-    def search(query):
+    def filter_by_name(query):
         rows = app.db.execute("""
         SELECT productid, sellerid, prodname, description, 
                imagepath, price, quantity, category
         FROM Products
         WHERE quantity > 0 
-          AND (LOWER(prodname) LIKE LOWER(:query) 
-               OR LOWER(description) LIKE LOWER(:query)
-               OR LOWER(category) LIKE LOWER(:query))
+          AND (LOWER(prodname) LIKE LOWER(:query)) 
         """,
                               query=f'%{query}%')
         return [Product(*row) for row in rows]
+
+    @staticmethod
+    def filter_by_seller(seller_search_term):
+        # Check if the seller_search_term is numeric
+        is_numeric = seller_search_term.isdigit()
+        
+        # Prepare the SQL query
+        query = """
+        SELECT p.productid, p.sellerid, p.prodname, p.description, 
+            p.imagepath, p.price, p.quantity, p.category
+        FROM Products p
+        JOIN Sellers s ON p.sellerid = s.userid
+        WHERE p.quantity > 0 
+        AND (
+            LOWER(s.firstname) LIKE LOWER(:name_search_term) 
+            OR LOWER(s.lastname) LIKE LOWER(:name_search_term)
+        """
+        
+        # Add condition for seller ID if the search term is numeric
+        if is_numeric:
+            query += " OR s.userid = :seller_id"
+        
+        query += ")"
+
+        # Execute the query
+        rows = app.db.execute(query, 
+                            name_search_term=f'%{seller_search_term}%',  # For name matching
+                            seller_id=seller_search_term if is_numeric else None)  # Use the raw term for ID comparison
+
+        return [Product(*row) for row in rows]
+
