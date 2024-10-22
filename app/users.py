@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for, flash, request, abort, current_app as app
+from flask import render_template, jsonify, redirect, url_for, flash, request, abort, current_app as app
 from werkzeug.urls import url_parse
 from flask_login import login_user, logout_user, current_user, login_required
 from flask_wtf import FlaskForm
@@ -8,6 +8,7 @@ from .models.user import User
 from .models.product_review import ProductReview
 from .models.sellerreview import SellerReview
 from .models.product import Product
+from .models.seller import Seller
 from collections import namedtuple
 
 from flask import Blueprint
@@ -138,7 +139,7 @@ def user_profile(user_id):
     
     # Fetch seller's products if the user is a seller
     seller_products = []
-    seller_products = seller.get_seller_products(user_id)
+    seller_products = Seller.get_seller_products(user_id)
 
     # Fetch product reviews (same as before)
     ProductReviewInfo = namedtuple('ProductReviewInfo', [
@@ -183,7 +184,7 @@ def user_profile(user_id):
 def get_seller_products_api(sellerid):
     try:
         # Call the function to get the seller's products
-        products = seller.get_seller_products(sellerid)
+        products = Seller.get_seller_products(sellerid)
 
         # Return the products in JSON format
         return jsonify(products), 200
