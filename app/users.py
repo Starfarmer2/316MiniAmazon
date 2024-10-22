@@ -136,13 +136,15 @@ def user_profile(user_id):
     if user is None:
         abort(404)  # User not found
     
-    # Create a named tuple for product reviews
+    # Fetch seller's products if the user is a seller
+    seller_products = []
+    seller_products = Seller.get_seller_products(user_id)
+
+    # Fetch product reviews (same as before)
     ProductReviewInfo = namedtuple('ProductReviewInfo', [
         'productid', 'buyerid', 'dtime', 'review', 'rating', 
         'prodname', 'sellerid', 'seller_firstname', 'seller_lastname', 'product_url'
     ])
-
-    # Fetch product reviews with product and seller info
     product_reviews = app.db.execute('''
         SELECT pr.productid, pr.buyerid, pr.dtime, pr.review, pr.rating, 
                p.prodname, s.userid AS sellerid, s.firstname AS seller_firstname, s.lastname AS seller_lastname
@@ -153,20 +155,14 @@ def user_profile(user_id):
         ORDER BY pr.dtime DESC
         LIMIT 5
     ''', user_id=user_id)
-
-    # Create ProductReviewInfo objects with product URLs
     recent_product_reviews = [
         ProductReviewInfo(*review, product_url=url_for('products.product_detail', product_id=review[0]))
         for review in product_reviews
     ]
 
-    # Fetch seller reviews
+    # Fetch seller reviews (same as before)
     seller_reviews = SellerReview.get_recent_by_user(user_id)
-
-    # Create a new named tuple to hold seller review info
     SellerReviewInfo = namedtuple('SellerReviewInfo', ['review', 'seller_firstname', 'seller_lastname'])
-
-    # Fetch seller names for seller reviews and create new objects
     recent_seller_reviews = []
     for review in seller_reviews:
         seller = User.get(review.sellerid)
@@ -178,4 +174,18 @@ def user_profile(user_id):
     return render_template('user_profile.html', 
                            profile_user=user,
                            recent_product_reviews=recent_product_reviews,
-                           recent_seller_reviews=recent_seller_reviews)
+                           recent_seller_reviews=recent_seller_reviews,
+                           seller_products=seller_products)  # Pass seller's products to the template
+
+
+@bp.route('/api/seller/<int:sellerid>/products', methods=['GET'])
+@login_required
+def get_seller_products_api(sellerid):
+    try:
+        # Call the function to get the seller's products
+        products = Seller.get_seller_products(sellerid)
+
+        # Return the products in JSON format
+        return jsonify(products), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
