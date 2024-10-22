@@ -124,7 +124,7 @@ def filter_products():
 
     # Get top K most expensive products
     if top_k:
-        products = sorted(products, key=lambda x: x.price, reverse=True)[:top_k]
+        products = sorted(products, key=lambda x: x.price, reverse=True)[:int(top_k)]
 
 
     # Convert the query results into a list of dictionaries, only need to provide id. Includes the other two for debugging
