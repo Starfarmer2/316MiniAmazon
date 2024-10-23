@@ -15,5 +15,8 @@ Updated Roles:
       - API endpoint/backend implementation "app/users.py"
       - Front-end implementation in "app/templates/user_purchases.html"
       - SQL Query/psql reference in "app/models/purchase.py"
-  - Carts Guru --  
+   - Carts Guru 
+      - API endpoint/backend implementation is in "app/carts.py". 
+      - Front-end display is in "templates/cart.html" 
+      - SQL queries are in "app/models/cart.py"
    - Social Guru -- 
