@@ -11,6 +11,12 @@ Updated Roles:
 2. Where to find implementation of required items:
    - Sellers Guru -- API endpoint/backend implementation "App" folder's users.py; front-end implementation in "Templates" folder user_profile.html, SQL Query/psql reference in "models" folder seller.py
    - Products Guru -- 
-   - Users Guru -- 
-   - Carts Guru -- API endpoint/backend implementation is in app/carts.py. The front-end displaying is in templates/cart.html. The SQL queries are in app/models/cart.py
+   - Users Guru 
+      - API endpoint/backend implementation "app/users.py"
+      - Front-end implementation in "app/templates/user_purchases.html"
+      - SQL Query/psql reference in "app/models/purchase.py"
+   - Carts Guru 
+      - API endpoint/backend implementation is in "app/carts.py". 
+      - Front-end display is in "templates/cart.html" 
+      - SQL queries are in "app/models/cart.py"
    - Social Guru -- 
