@@ -13,4 +13,4 @@ Updated Roles:
     Products Guru -- 
     Users Guru -- 
     Carts Guru -- 
-    Social Guru --
+    Social Guru -- 
