@@ -9,6 +9,9 @@ We assume you are in your course container shell.  If you have a
 different setup, your mileage with the following instructions may
 vary.
 
+## Milestone 3 README Link:
+* https://github.com/Starfarmer2/316MiniAmazon/blob/main/README_MS3.md
+
 ## Installing the Current Skeleton
 
 1. One (and only one) team member should fork this repo by clicking
