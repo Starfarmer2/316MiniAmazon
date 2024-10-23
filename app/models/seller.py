@@ -14,9 +14,9 @@ class Seller:
     def get_seller_products(sellerid):
         try:
             rows = app.db.execute('''
-            SELECT ProductID, SellerID, ProdName, Description, Image_Path, Price, Quantity, Category
-            FROM Product
-            WHERE SellerID = :sellerid
+            SELECT productid, sellerid, prodname, description, imagepath, price, quantity, category
+            FROM Products
+            WHERE sellerid = :sellerid
             ''', sellerid=sellerid)
             return [row for row in rows]
 
