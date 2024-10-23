@@ -19,4 +19,6 @@ Updated Roles:
       - API endpoint/backend implementation is in "app/carts.py". 
       - Front-end display is in "templates/cart.html" 
       - SQL queries are in "app/models/cart.py"
-   - Social Guru -- 
+   - Social Guru 
+      - The displays are found in templates/user_profile.html and product_detail.html
+      - the API backend/SQL queries are in products.py and users.py
