@@ -1,0 +1,25 @@
+Weekly Update 10/24:
+
+- Abhishek Chataut
+  - Worked on MS2 Database design schema, E/R diagram
+  - Worked on Carts Guru Features
+  - Recorded Demo Video for Carts Features
+- Alice Hu
+  - Worked on MS2 Database design schema, E/R diagram
+  - Worked on Users Guru Features
+  - Recorded Demo Video for Users Features
+- Daniel Zeng
+  - Worked on MS2 Database design schema, E/R diagram
+  - Worked On Sellers Guru MS3 Features
+  - Recorded Demo Video for Sellers Features
+- Jasper Hu
+  - Worked on MS2 Database design schema, E/R diagram
+  - Worked On Products Guru MS3 features
+  - Recorded Demo Video for Products Features
+- Muchang Bahng
+  - Worked on MS2 Database design schema, E/R diagram
+  - Started and deployed codebase/Flask App
+  - Developed most of website UI
+  - Implemented DB Schemas
+  - Worked On Users, Carts, Social Guru MS3 features.
+  - Recorded Demo Video for Social Guru Features
