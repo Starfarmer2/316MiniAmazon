@@ -1,6 +1,7 @@
 from flask import render_template, jsonify, redirect, url_for, flash, request, abort, current_app as app
 from werkzeug.urls import url_parse
 from flask_login import login_user, logout_user, current_user, login_required
+from flask_paginate import Pagination, get_page_parameter
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo
@@ -137,11 +138,31 @@ def user_profile(user_id):
     if user is None:
         abort(404)  # User not found
     
+    # Get page number from request args, default to 1
+    page = request.args.get('page', type=int, default=1)
+    per_page = 20  # Number of items per page
+    
     # Fetch seller's products if the user is a seller
-    seller_products = []
     seller_products = Seller.get_seller_products(user_id)
+    total = len(seller_products)
+    
+    # Calculate start and end indices for current page
+    offset = (page - 1) * per_page
+    end_idx = offset + per_page
+    
+    # Slice the products for current page
+    products_for_page = seller_products[offset:end_idx] if seller_products else []
 
-    # Fetch product reviews (same as before)
+    # Create pagination object
+    pagination = Pagination(
+        page=page,
+        per_page=per_page,
+        total=total,
+        css_framework='bootstrap4',
+        display_msg='Displaying <b>{start} - {end}</b> of <b>{total}</b> products'
+    )
+
+    # Rest of your existing code...
     ProductReviewInfo = namedtuple('ProductReviewInfo', [
         'productid', 'buyerid', 'dtime', 'review', 'rating', 
         'prodname', 'sellerid', 'seller_firstname', 'seller_lastname', 'product_url'
@@ -161,7 +182,6 @@ def user_profile(user_id):
         for review in product_reviews
     ]
 
-    # Fetch seller reviews (same as before)
     seller_reviews = SellerReview.get_recent_by_user(user_id)
     SellerReviewInfo = namedtuple('SellerReviewInfo', ['review', 'seller_firstname', 'seller_lastname'])
     recent_seller_reviews = []
@@ -176,7 +196,10 @@ def user_profile(user_id):
                            profile_user=user,
                            recent_product_reviews=recent_product_reviews,
                            recent_seller_reviews=recent_seller_reviews,
-                           seller_products=seller_products)  # Pass seller's products to the template
+                           seller_products=products_for_page,
+                           pagination=pagination,
+                           total=total,
+                           per_page=per_page)  # Add this line
 
 
 @bp.route('/api/seller/<int:sellerid>/products', methods=['GET'])

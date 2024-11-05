@@ -7,7 +7,7 @@
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
-  <style>
+    <style>
         body {
             background-color: #f8f9fa;
             padding-top: 20px;
@@ -108,6 +108,64 @@
         .user-link:hover {
             text-decoration: underline;
         }
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 20px 0;
+        }
+        
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .pagination {
+            display: flex;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .page-item {
+            margin: 0 5px;
+        }
+        
+        .page-link {
+            padding: 8px 16px;
+            border: 1px solid #dee2e6;
+            color: #007bff;
+            background-color: #fff;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        
+        .page-item.active .page-link {
+            background-color: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+        
+        .page-item.disabled .page-link {
+            color: #6c757d;
+            pointer-events: none;
+            background-color: #fff;
+            border-color: #dee2e6;
+        }
+        
+        .page-link:hover {
+            background-color: #e9ecef;
+            text-decoration: none;
+        }
+        
+        .products-info {
+            color: #6c757d;
+            text-align: right;
+            margin: 10px 0;
+            font-size: 0.9em;
+        }
     </style>
 </head>
 <body>
@@ -194,8 +252,12 @@
         <div class="seller-products-section">
             <h2 class="section-title">Products Sold by {{ profile_user.firstname }}</h2>
             
-            <div class="product-grid">
-                {% if seller_products %}
+            {% if seller_products %}
+                <div class="products-info">
+                  {{ pagination.info }}
+                </div>
+                
+                <div class="product-grid">
                     {% for product in seller_products %}
                     <div class="product-item">
                         <h3 class="product-name">{{ product.prodname }}</h3>
@@ -207,10 +269,16 @@
                            class="btn-view-details">View Details</a>
                     </div>
                     {% endfor %}
-                {% else %}
-                    <p>No products are currently being sold by this user.</p>
+                </div>
+                
+                {% if (total // per_page) + (1 if total % per_page > 0 else 0) > 1 %}
+                <div class="pagination-container">
+                  {{ pagination.links }}
+                </div>
                 {% endif %}
-            </div>
+            {% else %}
+                <p>No products are currently being sold by this user.</p>
+            {% endif %}
         </div>
         
     </div>
