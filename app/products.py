@@ -6,8 +6,10 @@ from wtforms.validators import DataRequired, NumberRange
 from .models.product import Product
 from .models.product_review import ProductReview
 from .models.user import User
+from math import ceil
 
 bp = Blueprint('products', __name__)
+PRODUCTS_PER_PAGE = 20
 
 class ProductForm(FlaskForm):
     name = StringField('Product Name', validators=[DataRequired()])
@@ -18,8 +20,32 @@ class ProductForm(FlaskForm):
 
 @bp.route('/products')
 def all_products():
-    products = Product.get_all()
-    return render_template('products.html', products=products)
+    # Get page number from query parameters, default to 1
+    page = request.args.get('page', 1, type=int)
+    
+    # Get total number of products for pagination
+    total_products = app.db.execute(
+        'SELECT COUNT(*) FROM Products'
+    )[0][0]
+    
+    # Calculate total pages
+    total_pages = ceil(total_products / PRODUCTS_PER_PAGE)
+    
+    # Get paginated products
+    products = app.db.execute('''
+        SELECT *
+        FROM Products
+        ORDER BY productid
+        LIMIT :limit OFFSET :offset
+    ''', 
+        limit=PRODUCTS_PER_PAGE,
+        offset=(page - 1) * PRODUCTS_PER_PAGE
+    )
+    
+    return render_template('products.html',
+                         products=products,
+                         current_page=page,
+                         total_pages=total_pages)
 
 @bp.route('/product/<int:product_id>')
 def product_detail(product_id):
@@ -101,46 +127,53 @@ def search_products():
     products = Product.search(query)
     return render_template('search_results.html', products=products, query=query)
 
-# API end point for filtering products based on name and seller, not a real url link
 @bp.route('/filter-products', methods=['POST'])
 def filter_products():
-    # Get JSON data from the request
     data = request.json
     seller_search_term = data.get('sellerSearchTerm', '').lower()
     product_search_term = data.get('productSearchTerm', '').lower()
-    top_k = data.get('topK', 10)
-
-
-    # Initialize a base query for products
-    products = Product.get_all()  # Get all products
-
-    # Filter by seller name if the term is provided
-    if seller_search_term:
-        products = Product.filter_by_seller(seller_search_term)
-
-    #Now filter that on product search term if provided through list comprehension
+    top_k = data.get('topK')
+    
+    # Build the base query
+    query = '''
+        SELECT p.*, u.firstname, u.lastname
+        FROM Products p
+        JOIN Users u ON p.sellerid = u.userid
+        WHERE 1=1
+    '''
+    params = {}
+    
+    # Add search conditions
     if product_search_term:
-        products = [product for product in products if product_search_term in product.prodname.lower()]
+        query += ' AND LOWER(p.prodname) LIKE :product_term'
+        params['product_term'] = f'%{product_search_term}%'
+    
+    if seller_search_term:
+        query += ''' AND (LOWER(u.firstname) LIKE :seller_term 
+                     OR LOWER(u.lastname) LIKE :seller_term)'''
+        params['seller_term'] = f'%{seller_search_term}%'
+    
+    # Add ordering and limit for top K
+    if top_k and top_k.isdigit():
+        query += ' ORDER BY p.price DESC LIMIT :top_k'
+        params['top_k'] = int(top_k)
+    else:
+        query += ' ORDER BY p.productid'
 
-    # Get top K most expensive products
-    if top_k:    
-        products = app.db.execute('''
-            SELECT * FROM Products
-            ORDER BY price DESC
-            LIMIT :top_k
-        ''', top_k=top_k)
-        # products = sorted(products, key=lambda x: x.price, reverse=True)[:int(top_k)]
-
-
-    # Convert the query results into a list of dictionaries, only need to provide id. Includes the other two for debugging
+    # Execute the query
+    products = app.db.execute(query, **params)
+    
+    # Convert to list of dictionaries with all needed product information
     product_list = [
         {
             "id": product.productid,
             "name": product.prodname,
-            "sellerid": product.sellerid,
+            "price": float(product.price),
+            "description": product.description,
+            "quantity": product.quantity,
+            "seller_name": f"{product.firstname} {product.lastname}"
         }
         for product in products
     ]
-
-    # Return the list as a JSON response
+    
     return jsonify(product_list)

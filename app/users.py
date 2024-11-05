@@ -14,6 +14,7 @@ from collections import namedtuple
 
 from flask import Blueprint
 bp = Blueprint('users', __name__)
+PRODUCTS_PER_PAGE = 20
 
 
 class LoginForm(FlaskForm):
