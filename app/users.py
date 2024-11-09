@@ -115,21 +115,48 @@ def user_purchases(user_id):
         flash('You can only view your own purchases.')
         return redirect(url_for('index.index'))
 
-    # Using positional parameters (%s) instead of named parameters
-    purchases = app.db.execute('''
-        SELECT p.productid, p.prodname, pu.dtime, pu.quantity, pu.status, p.price
+    # Retrieve optional filter parameters from query string
+    product_name = request.args.get('product_name')
+    seller_name = request.args.get('seller_name')
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    status = request.args.get('status')
+
+    # Build query dynamically based on filters provided
+    query = '''
+        SELECT DISTINCT p.productid, p.prodname, pu.dtime, pu.quantity, pu.status, p.price, s.firstname AS seller_firstname, s.lastname AS seller_lastname
         FROM Purchases pu
         JOIN Products p ON pu.productid = p.productid
+        JOIN Sellers s ON p.sellerid = s.userid
         WHERE pu.userid = :user_id
-    ''', user_id=user_id,)  # Pass user_id as a tuple
+    '''
+    params = {'user_id': user_id}
 
+    # Add filter conditions based on provided parameters
+    if product_name:
+        query += ' AND p.prodname ILIKE :product_name'
+        params['product_name'] = f'%{product_name}%'
+    if seller_name:
+        query += ' AND (s.firstname || \' \' || s.lastname) ILIKE :seller_name'
+        params['seller_name'] = f'%{seller_name}%'
+    if start_date:
+        query += ' AND pu.dtime >= :start_date'
+        params['start_date'] = start_date
+    if end_date:
+        query += ' AND pu.dtime <= :end_date'
+        params['end_date'] = end_date
+    if status is not None and status != '':
+        params['status'] = bool(int(status))  # Convert to boolean if status is passed as '0' or '1'
+        query += ' AND pu.status = :status'
+
+    # Execute the query with the dynamically built parameters
+    purchases = app.db.execute(query, **params)
 
     if not purchases:
-        flash(f'No purchases found for your account.')
+        flash('No purchases found for your filters.')
         return render_template('user_purchases.html', purchases=[])
 
     return render_template('user_purchases.html', purchases=purchases)
-
 
 
 @bp.route('/user/<int:user_id>/profile')

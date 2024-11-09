@@ -40,6 +40,17 @@
             font-size: 40px;
             margin-bottom: 20px;
         }
+        .filter-form {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .filter-form .form-control {
+            width: auto;
+            min-width: 150px;
+        }
         .purchase-grid {
             display: flex;
             flex-wrap: wrap;
@@ -72,6 +83,13 @@
             .purchase-item {
                 width: 100%;
             }
+            .filter-form {
+                flex-direction: column;
+                gap: 15px;
+            }
+            .filter-form .form-control {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -93,6 +111,21 @@
 
     <div id="B_section">
         <h2 class="B_section_title">Your Purchase History</h2>
+
+        <!-- Filter Form in a Single Row -->
+        <form class="filter-form" method="get">
+            <input type="text" name="product_name" placeholder="Search by Product Name" class="form-control" value="{{ request.args.get('product_name', '') }}">
+            <input type="text" name="seller_name" placeholder="Search by Seller Name" class="form-control" value="{{ request.args.get('seller_name', '') }}">
+            <input type="date" name="start_date" placeholder="Start Date" class="form-control" value="{{ request.args.get('start_date', '') }}">
+            <input type="date" name="end_date" placeholder="End Date" class="form-control" value="{{ request.args.get('end_date', '') }}">
+            <select name="status" class="form-control">
+                <option value="">All Statuses</option>
+                <option value="1" {% if request.args.get('status') == '1' %}selected{% endif %}>Completed</option>
+                <option value="0" {% if request.args.get('status') == '0' %}selected{% endif %}>Pending</option>
+            </select>
+            <button type="submit" class="btn btn-primary">Apply Filters</button>
+        </form>
+
         {% if purchases %}
             <div class="purchase-grid">
                 {% for purchase in purchases %}
@@ -103,6 +136,7 @@
                         <p class="purchase-time">Purchase Time: {{ purchase[2] }}</p> <!-- Purchase Time -->
                         <p>Quantity: {{ purchase[3] }}</p> <!-- Quantity -->
                         <p>Status: {{ "Completed" if purchase[4] else "Pending" }}</p> <!-- Status -->
+                        <p>Seller: {{ purchase[6] }} {{ purchase[7] }}</p> <!-- Seller's Name -->
                     </div>
                 {% endfor %}
             </div>
