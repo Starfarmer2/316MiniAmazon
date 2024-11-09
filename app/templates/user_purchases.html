@@ -7,6 +7,8 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    
     <style>
         body {
             background-image: url(static/css/basketball.png);
@@ -125,6 +127,12 @@
             </select>
             <button type="submit" class="btn btn-primary">Apply Filters</button>
         </form>
+        
+        <!-- Bar Chart Section -->
+        <h3 class="text-center mt-4">Purchases by Category</h3>
+        <div class="chart-container" style="width: 40%; height: 300px; margin: auto;">
+            <canvas id="categoryChart"></canvas>
+        </div>
 
         {% if purchases %}
             <div class="purchase-grid">
@@ -148,5 +156,69 @@
     <div id="footer">
         <p>&copy; 2024 Mamazon. All rights reserved.</p>
     </div>
+
+    <script>
+        $(document).ready(function() {
+            console.log("Document is ready.");  // Check if this runs
+    
+            // Fetch category data from the backend
+            $.getJSON("{{ url_for('users.purchase_summary', user_id=current_user.userid) }}", function(data) {
+                console.log("Data fetched:", data);  // Log the fetched data
+    
+                const categories = data.categories;
+                const purchaseCounts = data.purchase_counts;
+                console.log("Categories:", categories);  // Log categories
+                console.log("Purchase Counts:", purchaseCounts);  // Log purchase counts
+    
+                const ctx = document.getElementById('categoryChart');
+                if (ctx) {
+                    const chartContext = ctx.getContext('2d');
+                    if (chartContext) {
+                        console.log("Creating Chart...");
+    
+                        // Initialize the Chart
+                        new Chart(chartContext, {
+                            type: 'bar',
+                            data: {
+                                labels: categories,
+                                datasets: [{
+                                    label: 'Number of Purchases',
+                                    data: purchaseCounts,
+                                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                                    borderColor: 'rgba(54, 162, 235, 1)',
+                                    borderWidth: 1
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        title: {
+                                            display: true,
+                                            text: 'Purchase Count'
+                                        }
+                                    },
+                                    x: {
+                                        title: {
+                                            display: true,
+                                            text: 'Category'
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    } else {
+                        console.error("Failed to get 2D context for chart.");
+                    }
+                } else {
+                    console.error("Canvas element with id 'categoryChart' not found.");
+                }
+            }).fail(function() {
+                console.error("Failed to fetch data for the chart.");
+            });
+        });
+    </script>
+    
 </body>
 </html>

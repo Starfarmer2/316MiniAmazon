@@ -158,6 +158,29 @@ def user_purchases(user_id):
 
     return render_template('user_purchases.html', purchases=purchases)
 
+@bp.route('/user/<int:user_id>/purchase_summary')
+@login_required
+def purchase_summary(user_id):
+    if current_user.userid != user_id:
+        flash('You can only view your own purchases.')
+        return redirect(url_for('index.index'))
+
+    # Query to count purchases by category
+    summary_data = app.db.execute('''
+        SELECT p.category, COUNT(*) AS purchase_count
+        FROM Purchases pu
+        JOIN Products p ON pu.productid = p.productid
+        WHERE pu.userid = :user_id
+        GROUP BY p.category
+        ORDER BY purchase_count DESC
+    ''', user_id=user_id)
+
+    # Convert the data into a format suitable for JSON
+    categories = [row[0] for row in summary_data]
+    purchase_counts = [row[1] for row in summary_data]
+
+    return jsonify({"categories": categories, "purchase_counts": purchase_counts})
+
 
 @bp.route('/user/<int:user_id>/profile')
 @login_required
