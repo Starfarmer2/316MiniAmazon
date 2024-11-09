@@ -35,6 +35,7 @@ CREATE TABLE Carts (
   productname VARCHAR(255), 
   quantity INT CHECK(quantity > 0), 
   unit_price FLOAT, 
+  status VARCHAR(20) DEFAULT 'in_cart',
   PRIMARY KEY (userid, productid)
 );
 

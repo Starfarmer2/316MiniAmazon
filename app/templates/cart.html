@@ -86,6 +86,7 @@
 
     <div id="B_section">
         <h2 class="B_section_title">Your Cart</h2>
+        <!-- In Cart Section -->
         {% if cart_items %}
             <div class="cart-items">
                 {% for item in cart_items %}
@@ -99,7 +100,10 @@
                             </form>
                         </p>
                         <p>Subtotal: ${{ "%.2f"|format(item.unit_price * item.quantity) }}</p>
-                        <form action="{{ url_for('cart.remove_from_cart', productid=item.productid) }}" method="POST">
+                        <form action="{{ url_for('cart.save_for_later', product_id=item.productid) }}" method="POST" style="display: inline;">
+                            <button type="submit" class="btn btn-sm btn-secondary">Save for Later</button>
+                        </form>
+                        <form action="{{ url_for('cart.remove_from_cart', productid=item.productid) }}" method="POST" style="display: inline;">
                             <button type="submit" class="btn btn-sm btn-danger">Remove</button>
                         </form>
                     </div>
@@ -115,6 +119,29 @@
         {% else %}
             <p class="text-center">Your cart is empty.</p>
         {% endif %}
+
+        <!-- Saved for Later Section -->
+        <h3 class="mt-4">Saved for Later</h3>
+        {% if saved_items %}
+            <div class="saved-items">
+                {% for item in saved_items %}
+                    <div class="cart-item">
+                        <p class="cart-item-name">{{ item.productname }}</p>
+                        <p class="cart-item-price">Price: ${{ "%.2f"|format(item.unit_price) }}</p>
+                        <p>Quantity: {{ item.quantity }}</p>
+                        <form action="{{ url_for('cart.move_to_cart', product_id=item.productid) }}" method="POST" style="display: inline;">
+                            <button type="submit" class="btn btn-sm btn-primary">Move to Cart</button>
+                        </form>
+                        <form action="{{ url_for('cart.remove_from_cart', productid=item.productid) }}" method="POST" style="display: inline;">
+                            <button type="submit" class="btn btn-sm btn-danger">Remove</button>
+                        </form>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-center">No items saved for later.</p>
+        {% endif %}
+
         <div class="text-center mt-4">
             <a href="{{ url_for('products.all_products') }}" class="btn btn-primary">Continue Shopping</a>
         </div>

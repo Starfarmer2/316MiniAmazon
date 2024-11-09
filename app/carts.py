@@ -22,7 +22,7 @@ def add_to_cart(product_id):
         flash('Not enough stock available.')
         return redirect(url_for('products.product_detail', product_id=product_id))
     
-    success = Cart.add_item(current_user.userid, product_id, product.prodname, quantity, product.price)
+    success = Cart.add_item(current_user.userid, product_id, product.prodname, quantity, product.price, status='in_cart')
     if success:
         flash('Item added to cart successfully.')
     else:
@@ -43,9 +43,11 @@ def remove_from_cart(productid):
 @bp.route('/view_cart')
 @login_required
 def view_cart():
-    cart_items = Cart.get_user_cart(current_user.userid)
-    total = Cart.get_cart_total(current_user.userid)
-    return render_template('cart.html', cart_items=cart_items, total=total)
+    # Fetch both "In Cart" and "Saved for Later" items
+    cart_items = Cart.get_user_cart(current_user.userid, status='in_cart')
+    saved_items = Cart.get_user_cart(current_user.userid, status='saved')
+    total = Cart.get_cart_total(current_user.userid, status='in_cart')
+    return render_template('cart.html', cart_items=cart_items, saved_items=saved_items, total=total)
 
 @bp.route('/update_cart_item/<int:productid>', methods=['POST'])
 @login_required
@@ -66,4 +68,28 @@ def clear_cart():
         flash('Cart cleared successfully.')
     else:
         flash('Error clearing cart.')
+    return redirect(url_for('cart.view_cart'))
+
+# New route to save an item for later
+@bp.route('/save_for_later/<int:product_id>', methods=['POST'])
+@login_required
+def save_for_later(product_id):
+    # Update the item's status to 'saved'
+    success = Cart.update_item_status(current_user.userid, product_id, status='saved')
+    if success:
+        flash('Item saved for later.')
+    else:
+        flash('Error saving item for later.')
+    return redirect(url_for('cart.view_cart'))
+
+# New route to move an item back to the cart
+@bp.route('/move_to_cart/<int:product_id>', methods=['POST'])
+@login_required
+def move_to_cart(product_id):
+    # Update the item's status to 'in_cart'
+    success = Cart.update_item_status(current_user.userid, product_id, status='in_cart')
+    if success:
+        flash('Item moved back to cart.')
+    else:
+        flash('Error moving item back to cart.')
     return redirect(url_for('cart.view_cart'))
