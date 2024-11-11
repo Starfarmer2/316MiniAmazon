@@ -69,11 +69,12 @@ def register_seller():
 
     # Insert the user into the Sellers table
     app.db.execute("""
-        INSERT INTO Sellers(UserID, Email, Name, Address, Password, Balance)
+        INSERT INTO Sellers(userid, email, firstname, lastname, address, password, balance)
         VALUES(:userid, :email, :name, :address, :password, :balance)
     """, userid=current_user.userid,
        email=current_user.email,
-       name=f"{current_user.firstname} {current_user.lastname}",
+       firstname=current_user.firstname,
+       lastname=current_user.lastname,
        address=current_user.address,
        password=password_hash,  # assuming password is already hashed
        balance=current_user.balance)
