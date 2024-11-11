@@ -46,28 +46,29 @@ def login():
 @login_required
 def register_seller():
     # Check if the user is already a seller
-    existing_seller = Seller.query.filter_by(UserID=current_user.userid).first()
-    if existing_seller:
+    rows = app.db.execute("""
+        SELECT UserID FROM Sellers
+        WHERE UserID = :userid
+    """, userid=current_user.userid)
+
+    if len(rows) > 0:
         flash("You are already registered as a seller.")
         return redirect(url_for('users.account'))
 
-    # Retrieve current user information
-    user = current_user
+    # Insert the user into the Sellers table
+    app.db.execute("""
+        INSERT INTO Sellers(UserID, Email, Name, Address, Password, Balance)
+        VALUES(:userid, :email, :name, :address, :password, :balance)
+    """, userid=current_user.userid,
+       email=current_user.email,
+       name=f"{current_user.firstname} {current_user.lastname}",
+       address=current_user.address,
+       password=current_user.password,  # assuming password is already hashed
+       balance=current_user.balance)
 
-    # Insert user information into Seller table
-    new_seller = Seller(
-        UserID=user.userid,
-        Email=user.email,
-        Name=user.firstname + " " + user.lastname,
-        Address=user.address,
-        Password=user.password,  # Assuming password is already hashed
-        Balance=user.balance
-    )
-    db.session.add(new_seller)
-    db.session.commit()
-
-    flash("Successfully registered as a seller")
+    flash("Successfully registered as a seller!")
     return redirect(url_for('users.account'))
+
 
 @bp.route('/account')
 @login_required
