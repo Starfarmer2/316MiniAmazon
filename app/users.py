@@ -42,15 +42,45 @@ def login():
         return redirect(next_page)
     return render_template('login.html', title='Sign In', form=form)
 
+@bp.route('/register_seller', methods=['POST'])
+@login_required
+def register_seller():
+    # Check if the user is already a seller
+    existing_seller = Seller.query.filter_by(UserID=current_user.userid).first()
+    if existing_seller:
+        flash("You are already registered as a seller.")
+        return redirect(url_for('users.account'))
+
+    # Retrieve current user information
+    user = current_user
+
+    # Insert user information into Seller table
+    new_seller = Seller(
+        UserID=user.userid,
+        Email=user.email,
+        Name=user.firstname + " " + user.lastname,
+        Address=user.address,
+        Password=user.password,  # Assuming password is already hashed
+        Balance=user.balance
+    )
+    db.session.add(new_seller)
+    db.session.commit()
+
+    flash("Successfully registered as a seller")
+    return redirect(url_for('users.account'))
+
 @bp.route('/account')
 @login_required
 def account():
     recent_product_reviews = ProductReview.get_recent_by_user(current_user.userid)
     recent_seller_reviews = SellerReview.get_recent_by_user(current_user.userid)
+    is_seller = Seller.query.filter_by(UserID=current_user.userid).first() is not None
     return render_template('account.html', 
-                           user=current_user, 
-                           recent_product_reviews=recent_product_reviews,
-                           recent_seller_reviews=recent_seller_reviews)
+                       user=current_user, 
+                       recent_product_reviews=recent_product_reviews,
+                       recent_seller_reviews=recent_seller_reviews,
+                       is_seller=is_seller)
+
 
 class RegistrationForm(FlaskForm):
     firstname = StringField('First Name', validators=[DataRequired()])
