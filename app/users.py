@@ -74,7 +74,13 @@ def register_seller():
 def account():
     recent_product_reviews = ProductReview.get_recent_by_user(current_user.userid)
     recent_seller_reviews = SellerReview.get_recent_by_user(current_user.userid)
-    is_seller = Seller.query.filter_by(UserID=current_user.userid).first() is not None
+    rows = app.db.execute("""
+        SELECT UserID FROM Seller
+        WHERE UserID = :userid
+    """, userid=current_user.userid)
+
+    # If rows are returned, the user is a seller
+    is_seller = len(rows) > 0
     return render_template('account.html', 
                        user=current_user, 
                        recent_product_reviews=recent_product_reviews,
