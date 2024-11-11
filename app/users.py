@@ -70,7 +70,7 @@ def register_seller():
     # Insert the user into the Sellers table
     app.db.execute("""
         INSERT INTO Sellers(userid, email, firstname, lastname, address, password, balance)
-        VALUES(:userid, :email, :name, :address, :password, :balance)
+        VALUES(:userid, :email, :firstname, :lastname, :address, :password, :balance)
     """, userid=current_user.userid,
        email=current_user.email,
        firstname=current_user.firstname,
