@@ -24,17 +24,29 @@ class Purchase:
             user_balance = user_balance_row[0][0]
             print(f"User balance: {user_balance}")
 
-            # Get product details
+            # Get product details and the seller ID
             print(f"Fetching product details for product {productid}")
             product_row = app.db.execute(
-                'SELECT price, quantity FROM Products WHERE productid = :productid',
+                'SELECT price, quantity, sellerid FROM Products WHERE productid = :productid',
                 productid=productid  # Passing parameters directly
             )
             if not product_row:
                 print("Product not found")
                 return None, "Product not found"
-            product_price, product_quantity = product_row[0]
-            print(f"Product price: {product_price}, Available quantity: {product_quantity}")
+            product_price, product_quantity, seller_id = product_row[0]
+            print(f"Product price: {product_price}, Available quantity: {product_quantity}, Seller id: {seller_id}")
+
+            # Fetch seller's balance
+            print(f"Fetching seller's balance for seller {seller_id}")
+            seller_balance_row = app.db.execute(
+                'SELECT balance FROM Sellers WHERE userid = :seller_id',
+                seller_id=seller_id
+            )
+            if not seller_balance_row:
+                print("Seller not found")
+                return None, "Seller not found"
+            seller_balance = seller_balance_row[0][0]
+            print(f"Seller balance: {seller_balance}")
 
             total_cost = product_price * quantity
             print(f"Total cost for {quantity} units: {total_cost}")
@@ -52,6 +64,18 @@ class Purchase:
             app.db.execute(
                 'UPDATE Users SET balance = balance - :amount WHERE userid = :userid',
                 amount=total_cost, userid=userid  # Passing parameters directly
+            )
+
+            # Update seller's balance
+            print(f"Updating seller's balance, adding {total_cost}")
+            app.db.execute(
+                '''
+                BEGIN;
+                UPDATE Users SET balance = balance + :amount WHERE userid = :sellerid;
+                UPDATE Sellers SET balance = balance + :amount WHERE userid = :sellerid;
+                COMMIT;
+                ''',
+                amount=total_cost, sellerid=seller_id
             )
 
             # Update product quantity

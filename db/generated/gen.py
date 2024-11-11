@@ -41,7 +41,7 @@ def gen_users_and_sellers(num_users):
             writer.writerow(row)
         print(f'{num_users} users generated')
     
-    with open('Sellers.csv', 'w') as f:
+    with open('Sellers1.csv', 'w') as f:
         writer = get_csv_writer(f)
         for row in sellers:
             writer.writerow(row)
