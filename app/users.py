@@ -55,6 +55,18 @@ def register_seller():
         flash("You are already registered as a seller.")
         return redirect(url_for('users.account'))
 
+    # Retrieve the password hash directly from the Users table
+    password_row = app.db.execute("""
+        SELECT password FROM Users
+        WHERE userid = :userid
+    """, userid=current_user.userid)
+
+    if not password_row:
+        flash("Error retrieving user password.")
+        return redirect(url_for('users.account'))
+
+    password_hash = password_row[0][0]  # Get the hashed password from the result
+
     # Insert the user into the Sellers table
     app.db.execute("""
         INSERT INTO Sellers(UserID, Email, Name, Address, Password, Balance)
@@ -63,7 +75,7 @@ def register_seller():
        email=current_user.email,
        name=f"{current_user.firstname} {current_user.lastname}",
        address=current_user.address,
-       password=current_user.password,  # assuming password is already hashed
+       password=password_hash,  # assuming password is already hashed
        balance=current_user.balance)
 
     flash("Successfully registered as a seller!")
