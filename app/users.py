@@ -75,7 +75,7 @@ def account():
     recent_product_reviews = ProductReview.get_recent_by_user(current_user.userid)
     recent_seller_reviews = SellerReview.get_recent_by_user(current_user.userid)
     rows = app.db.execute("""
-        SELECT UserID FROM Seller
+        SELECT UserID FROM Sellers
         WHERE UserID = :userid
     """, userid=current_user.userid)
 
