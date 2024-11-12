@@ -222,23 +222,6 @@
             </ul>
         </div>
 
-        <div class="products-section">
-            <h2>Products for Sale</h2>
-            <div class="product-grid">
-                {% if products %}
-                    {% for product in products %}
-                        <div class="product-item">
-                            <h3>{{ product.prodname }}</h3>
-                            <p><strong>Price:</strong> ${{ product.price }}</p>
-                            <p><strong>Quantity:</strong> {{ product.quantity }}</p>
-                            <p><strong>Category:</strong> {{ product.category }}</p>
-                        </div>
-                    {% endfor %}
-                {% else %}
-                    <p>No products for sale.</p>
-                {% endif %}
-        </div>
-
         <div class="reviews-section">
             <h2>Recent Reviews</h2>
             
