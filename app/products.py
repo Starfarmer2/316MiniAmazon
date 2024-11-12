@@ -154,6 +154,8 @@ def filter_products():
     product_search_term = data.get('productSearchTerm', '').lower()
     order_by = data.get('orderBy').lower()
     top_k = data.get('topK')
+
+    print('orderBy:', order_by)
     
     # Build the base query
     query = '''
@@ -193,6 +195,7 @@ def filter_products():
     elif order_by == 'sales':
         query = f"SELECT * FROM ({query}) AS p JOIN (SELECT productid, COUNT(*) AS sales FROM Orders GROUP BY productid) AS o ON p.productid = o.productid ORDER BY o.sales DESC"
 
+    print('Final query:', query)
     # Execute the query
     products = app.db.execute(query, **params)
     
