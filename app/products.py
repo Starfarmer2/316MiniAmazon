@@ -131,7 +131,7 @@ def delete_product(product_id):
         flash('Product not found.')
         return redirect(url_for('products.all_products'))
     
-    if product.seller_id != current_user.id:
+    if product.sellerid != current_user.userid:
         flash('You do not have permission to delete this product.')
         return redirect(url_for('products.product_detail', product_id=product_id))
     
@@ -139,7 +139,7 @@ def delete_product(product_id):
         flash('Product deleted successfully!')
     else:
         flash('Failed to delete product.')
-    return redirect(url_for('products.all_products'))
+    return redirect(url_for('products.manage_inventory'))
 
 @bp.route('/search')
 def search_products():
