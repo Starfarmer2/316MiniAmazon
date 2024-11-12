@@ -78,7 +78,7 @@ class Product:
                        category=category)
             return Product.get(productid)
         except Exception as e:
-            # handle the exception, possibly log it
+            #handle the exception, log it
             print(f"Error updating product: {e}")
             return None
 

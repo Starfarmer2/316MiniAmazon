@@ -151,7 +151,15 @@
                                 <p>Category: {{ product.category }}</p>
                                 <p>In Stock: {{ product.quantity }}</p>
                                 <a href="{{ url_for('products.product_detail', product_id=product.productid) }}" class="btn btn-primary">View Details</a>
-                                <a href="{{ url_for('products.edit_product', product_id=product.productid) }}" class="btn btn-warning">Edit</a>
+                                <!-- Edit button triggers the modal -->
+                                <button class="btn btn-warning" data-toggle="modal" data-target="#editProductModal"
+                                data-productid="{{ product.productid }}"
+                                data-prodname="{{ product.prodname }}"
+                                data-price="{{ product.price }}"
+                                data-quantity="{{ product.quantity }}"
+                                data-description="{{ product.description }}"
+                                data-image_path="{{ product.image_path }}"
+                                data-category="{{ product.category }}">Edit</button>
                                 <form action="{{ url_for('products.delete_product', product_id=product.productid) }}" method="post" style="display:inline;">
                                     <button type="submit" class="btn btn-danger">Delete</button>
                                 </form>
@@ -166,6 +174,76 @@
 
 
     </div>
+<!-- Edit Product Modal -->
+<div class="modal fade" id="editProductModal" tabindex="-1" role="dialog" aria-labelledby="editProductModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editProductModalLabel">Edit Product</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Edit Product Form -->
+                <form id="editProductForm" method="POST">
+                    {{ form.hidden_tag() }}  <!-- CSRF Token -->
+                    <div class="form-group">
+                        <label for="prodname">Product Name</label>
+                        <input type="text" class="form-control" id="prodname" name="prodname" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="price">Price</label>
+                        <input type="number" class="form-control" id="price" name="price" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="quantity">Quantity</label>
+                        <input type="number" class="form-control" id="quantity" name="quantity" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea class="form-control" id="description" name="description" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="category">Category</label>
+                        <input type="text" class="form-control" id="category" name="category">
+                    </div>
+                    <div class="form-group">
+                        <label for="image_path">Image Path</label>
+                        <input type="text" class="form-control" id="image_path" name="image_path">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Update Product</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $('#editProductModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget);  // Button that triggered the modal
+        var prodname = button.data('prodname');
+        var price = button.data('price');
+        var quantity = button.data('quantity');
+        var description = button.data('description');
+        var productid = button.data('productid');
+        var category = button.data('category');
+        var image_path = button.data('image_path');  // Get image_path data
+
+        // Set the values in the modal form fields
+        var modal = $(this);
+        modal.find('#prodname').val(prodname);
+        modal.find('#price').val(price);
+        modal.find('#quantity').val(quantity);
+        modal.find('#description').val(description);
+        modal.find('#category').val(category);
+        modal.find('#image_path').val(image_path);  // Set the image_path value
+
+        // Set the form action URL dynamically to include the product ID
+        modal.find('form').attr('action', '/product/' + productid + '/edit');
+    });
+</script>
+
 
 </body>
 </html>

@@ -89,7 +89,7 @@ def add_product():
         print(form.errors)
     return render_template('manage_inventory.html', form=form)
 
-@bp.route('/product/<int:product_id>/edit', methods=['GET', 'POST'])
+@bp.route('/product/<int:product_id>/edit', methods=['POST'])
 @login_required
 def edit_product(product_id):
     product = Product.get(product_id)
@@ -101,12 +101,27 @@ def edit_product(product_id):
         flash('You do not have permission to edit this product.')
         return redirect(url_for('products.product_detail', product_id=product_id))
     
-    form = ProductForm(obj=product)
+    form = ProductForm()  # Using the same form for edit
     if form.validate_on_submit():
-        if Product.update_product(product_id, form.name.data, form.price.data, form.quantity.data, form.description.data):
+        # Update product in the database with the new form data
+        if Product.update_product(
+            product_id, 
+            form.prodname.data, 
+            form.price.data, 
+            form.quantity.data, 
+            form.description.data, 
+            form.image_path.data,
+            form.category.data
+        ):
             flash('Product updated successfully!')
             return redirect(url_for('products.product_detail', product_id=product_id))
-    return render_template('edit_product.html', form=form, product=product)
+    else:
+        print("DID NOT EDIT PRODUCT!(Failed form validate_on_submit)")
+        print(form.errors)
+    # If form submission is invalid, re-render the form with errors
+    return render_template('manage_inventory.html', form=form)
+
+
 
 @bp.route('/product/<int:product_id>/delete', methods=['POST'])
 @login_required
