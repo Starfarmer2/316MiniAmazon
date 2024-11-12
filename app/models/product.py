@@ -49,7 +49,7 @@ class Product:
                                   quantity=quantity,
                                   category=category)
             productid = rows[0][0]
-            print(f"Product added with ID: {productid}")
+            app.logger.debug(f"Product added with ID: {productid}")
             return Product.get(productid)
         except Exception as e:
             # handle the exception, possibly log it
