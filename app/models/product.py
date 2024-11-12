@@ -57,7 +57,7 @@ class Product:
             return None
 
     @staticmethod
-    def update_product(productid, prodname, price, quantity, description, imagepath=None, category=None):
+    def update_product(productid, prodname, price, quantity, description, imagepath="/img/wallet.png", category="NoCategory"):
         try:
             app.db.execute("""
             UPDATE Products
