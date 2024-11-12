@@ -35,6 +35,10 @@ class Product:
 
     @staticmethod
     def add_product(prodname, price, quantity, description, sellerid, imagepath="/img/wallet.png", category="NoCategory"):
+        if not imagepath:
+            imagepath = "/img/wallet.png"
+        if not category:
+            category = "NoCategory"
         try:
             rows = app.db.execute("""
             INSERT INTO Products(sellerid, prodname, description, imagepath, price, quantity, category)
@@ -58,6 +62,10 @@ class Product:
 
     @staticmethod
     def update_product(productid, prodname, price, quantity, description, imagepath="/img/wallet.png", category="NoCategory"):
+        if not imagepath:
+            imagepath = "/img/wallet.png"
+        if not category:
+            category = "NoCategory"
         try:
             app.db.execute("""
             UPDATE Products
