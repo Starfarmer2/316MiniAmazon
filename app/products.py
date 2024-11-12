@@ -114,7 +114,7 @@ def edit_product(product_id):
             form.category.data
         ):
             flash('Product updated successfully!')
-            return redirect(url_for('products.product_detail', product_id=product_id))
+            return redirect(url_for('products.manage_inventory'))
     else:
         print("DID NOT EDIT PRODUCT!(Failed form validate_on_submit)")
         print(form.errors)

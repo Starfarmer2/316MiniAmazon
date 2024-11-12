@@ -34,9 +34,9 @@ class Product:
         return [Product(*row) for row in rows]
 
     @staticmethod
-    def add_product(prodname, price, quantity, description, sellerid, imagepath="/img/wallet.png", category="NoCategory"):
+    def add_product(prodname, price, quantity, description, sellerid, imagepath="NoImage", category="NoCategory"):
         if not imagepath:
-            imagepath = "/img/wallet.png"
+            imagepath = "NoImage"
         if not category:
             category = "NoCategory"
         try:
@@ -61,9 +61,9 @@ class Product:
             return None
 
     @staticmethod
-    def update_product(productid, prodname, price, quantity, description, imagepath="/img/wallet.png", category="NoCategory"):
+    def update_product(productid, prodname, price, quantity, description, imagepath="NoImage", category="NoCategory"):
         if not imagepath:
-            imagepath = "/img/wallet.png"
+            imagepath = "NoImage"
         if not category:
             category = "NoCategory"
         try:
