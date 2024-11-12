@@ -86,6 +86,7 @@ def add_product():
             return redirect(url_for('products.manage_inventory'))
     else:
         print("DID NOT ADD PRODUCT!(Failed form validate_on_submit)")
+        print(form.errors)
     return render_template('manage_inventory.html', form=form)
 
 @bp.route('/product/<int:product_id>/edit', methods=['GET', 'POST'])
