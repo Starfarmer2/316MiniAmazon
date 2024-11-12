@@ -158,7 +158,7 @@
                                 data-price="{{ product.price }}"
                                 data-quantity="{{ product.quantity }}"
                                 data-description="{{ product.description }}"
-                                data-image_path="{{ product.image_path }}"
+                                data-image_path="{{ product.imagepath }}"
                                 data-category="{{ product.category }}">Edit</button>
                                 <form action="{{ url_for('products.delete_product', product_id=product.productid) }}" method="post" style="display:inline;">
                                     <button type="submit" class="btn btn-danger">Delete</button>
@@ -209,8 +209,8 @@
                         <input type="text" class="form-control" id="category" name="category">
                     </div>
                     <div class="form-group">
-                        <label for="image_path">Image Path</label>
-                        <input type="text" class="form-control" id="image_path" name="image_path">
+                        <label for="imagepath">Image Path</label>
+                        <input type="text" class="form-control" id="imagepath" name="imagepath">
                     </div>
                     <button type="submit" class="btn btn-primary">Update Product</button>
                 </form>
@@ -228,7 +228,7 @@
         var description = button.data('description');
         var productid = button.data('productid');
         var category = button.data('category');
-        var image_path = button.data('image_path');  // Get image_path data
+        var image_path = button.data('imagepath');  // Get image_path data
 
         // Set the values in the modal form fields
         var modal = $(this);
@@ -237,7 +237,7 @@
         modal.find('#quantity').val(quantity);
         modal.find('#description').val(description);
         modal.find('#category').val(category);
-        modal.find('#image_path').val(image_path);  // Set the image_path value
+        modal.find('#imagepath').val(imagepath);  // Set the image_path value
 
         // Set the form action URL dynamically to include the product ID
         modal.find('form').attr('action', '/product/' + productid + '/edit');
