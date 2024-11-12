@@ -79,10 +79,10 @@ def add_product():
     
     form = ProductForm()
     if form.validate_on_submit():
-        if Product.add_product(form.name.data, form.price.data, form.quantity.data, form.description.data, current_user.id):
+        if Product.add_product(form.prodname.data, form.price.data, form.quantity.data, form.description.data, current_user.id, form.image_path.data, form.category.data):
             flash('Product added successfully!')
-            return redirect(url_for('products.all_products'))
-    return render_template('add_product.html', form=form)
+            return redirect(url_for('products.manage_inventory'))
+    return render_template('manage_inventory.html'', form=form)
 
 @bp.route('/product/<int:product_id>/edit', methods=['GET', 'POST'])
 @login_required
