@@ -204,7 +204,7 @@ def manage_inventory():
     form = ProductForm() #initialize form
     # Fetch the products for the logged-in seller
     products = app.db.execute("""
-        SELECT productid, prodname, price, quantity, category FROM Products
+        SELECT productid, prodname, price, quantity, description, imagepath, category FROM Products
         WHERE sellerid = :sellerid
     """, sellerid=current_user.userid)
 
