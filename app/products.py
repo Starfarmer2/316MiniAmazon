@@ -186,10 +186,11 @@ def filter_products():
 @bp.route('/manage_inventory')
 @login_required
 def manage_inventory():
+    form = ProductForm() #initialize form
     # Fetch the products for the logged-in seller
     products = app.db.execute("""
         SELECT productid, prodname, price, quantity, category FROM Products
         WHERE sellerid = :sellerid
     """, sellerid=current_user.userid)
 
-    return render_template('manage_inventory.html', products=products)
+    return render_template('manage_inventory.html', form=form, products=products)
