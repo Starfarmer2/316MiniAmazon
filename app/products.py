@@ -139,7 +139,7 @@ def delete_product(product_id):
         flash('Product deleted successfully!')
     else:
         flash('Failed to delete product.')
-    return redirect(url_for('products.all_products'))
+    return redirect(url_for('manage_inventory.html'))
 
 @bp.route('/search')
 def search_products():
