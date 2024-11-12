@@ -34,7 +34,7 @@ class Product:
         return [Product(*row) for row in rows]
 
     @staticmethod
-    def add_product(prodname, price, quantity, description, sellerid, imagepath=None, category=None):
+    def add_product(prodname, price, quantity, description, sellerid, imagepath="/img/wallet.png", category="NoCategory"):
         try:
             rows = app.db.execute("""
             INSERT INTO Products(sellerid, prodname, description, imagepath, price, quantity, category)

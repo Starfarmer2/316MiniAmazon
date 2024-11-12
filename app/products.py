@@ -12,10 +12,12 @@ bp = Blueprint('products', __name__)
 PRODUCTS_PER_PAGE = 20
 
 class ProductForm(FlaskForm):
-    name = StringField('Product Name', validators=[DataRequired()])
+    prodname = StringField('Product Name', validators=[DataRequired()])
     price = FloatField('Price', validators=[DataRequired(), NumberRange(min=0)])
     quantity = IntegerField('Quantity', validators=[DataRequired(), NumberRange(min=0)])
     description = TextAreaField('Description', validators=[DataRequired()])
+    image_path = StringField('Image Path') 
+    category = StringField('Category') 
     submit = SubmitField('Add Product')
 
 @bp.route('/products')
