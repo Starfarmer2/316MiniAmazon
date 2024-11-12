@@ -73,7 +73,7 @@ def product_detail(product_id):
 @bp.route('/add_product', methods=['GET', 'POST'])
 @login_required
 def add_product():
-    if not current_user.is_seller:
+    if not current_user.is_seller():
         flash('You do not have permission to add products.')
         return redirect(url_for('products.all_products'))
     

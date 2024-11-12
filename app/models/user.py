@@ -139,3 +139,11 @@ class User(UserMixin):
     @staticmethod
     def add_product_to_cart(productid): 
         pass 
+
+
+    def is_seller(self):
+        rows = app.db.execute("""
+            SELECT UserID FROM Sellers
+            WHERE UserID = :userid
+        """, userid=self.userid)
+        return len(rows) > 0  # Returns True if the user is a seller
