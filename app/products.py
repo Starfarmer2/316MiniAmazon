@@ -177,3 +177,14 @@ def filter_products():
     ]
     
     return jsonify(product_list)
+
+@bp.route('/manage_inventory')
+@login_required
+def manage_inventory():
+    # Fetch the products for the logged-in seller
+    products = app.db.execute("""
+        SELECT productid, prodname, price, quantity, category FROM Products
+        WHERE sellerid = :sellerid
+    """, sellerid=current_user.userid)
+
+    return render_template('manage_inventory.html', products=products)

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Inventory - Mamazon</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding-top: 70px;
+        }
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            padding: 15px 20px;
+            background-color: #f8f9fa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0,0,0,.1);
+        }
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        #HeaderName {
+            text-decoration: none;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .inventory-section {
+            margin-top: 20px;
+        }
+        .product-item {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #f9f9f9;
+        }
+        .product-item h4 {
+            margin-top: 0;
+        }
+        .product-item .price {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a id="HeaderName" href="{{ url_for('index.index') }}" class="btn btn-outline-primary">Home</a>
+        <div class="header-buttons">
+            <a class="btn btn-outline-primary" href="{{ url_for('products.all_products') }}">All Products</a>
+            <a class="btn btn-outline-primary" href="{{ url_for('users.account') }}">Account</a>
+            <a href="{{ url_for('users.logout') }}" class="btn btn-outline-primary">Log out</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1 class="mb-4">Manage Your Inventory</h1>
+
+        <div class="inventory-section">
+            <h2>Your Products</h2>
+
+            <!-- Loop through the products -->
+            {% if products %}
+                <div class="row">
+                    {% for product in products %}
+                        <div class="col-md-4">
+                            <div class="product-item">
+                                <h4>{{ product.prodname }}</h4>
+                                <p class="price">${{ product.price }}</p>
+                                <p>Category: {{ product.category }}</p>
+                                <p>In Stock: {{ product.quantity }}</p>
+                                <a href="{{ url_for('products.product_detail', product_id=product.productid) }}" class="btn btn-primary">View Details</a>
+                                <a href="{{ url_for('products.edit_product', product_id=product.productid) }}" class="btn btn-warning">Edit</a>
+                                <form action="{{ url_for('products.delete_product', product_id=product.productid) }}" method="post" style="display:inline;">
+                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>You don't have any products in your inventory yet.</p>
+            {% endif %}
+        </div>
+
+        <div class="add-product">
+            <a href="{{ url_for('products.add_product') }}" class="btn btn-success">Add New Product</a>
+        </div>
+    </div>
+
+</body>
+</html>
