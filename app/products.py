@@ -152,6 +152,7 @@ def filter_products():
     data = request.json
     seller_search_term = data.get('sellerSearchTerm', '').lower()
     product_search_term = data.get('productSearchTerm', '').lower()
+    order_by = data.get('orderBy').lower()
     top_k = data.get('topK')
     
     # Build the base query
@@ -162,6 +163,12 @@ def filter_products():
         WHERE 1=1
     '''
     params = {}
+
+    # Filtering/sorting a list of products: 
+    # e.g., sorting by average review rating 
+    # or total sales, filtering by rating, price, 
+    # and/or availability of highly rated sellers,
+    #  etc.
     
     # Add search conditions
     if product_search_term:
@@ -179,6 +186,12 @@ def filter_products():
         params['top_k'] = int(top_k)
     else:
         query += ' ORDER BY p.productid'
+
+    # wrap result in subquery for order_by
+    if order_by == 'rating':
+        query = f"SELECT * FROM ({query}) AS p JOIN (SELECT productid, AVG(rating) AS avg_rating FROM ProductReviews GROUP BY productid) AS pr ON p.productid = pr.productid ORDER BY pr.avg_rating DESC"
+    elif order_by == 'sales':
+        query = f"SELECT * FROM ({query}) AS p JOIN (SELECT productid, COUNT(*) AS sales FROM Orders GROUP BY productid) AS o ON p.productid = o.productid ORDER BY o.sales DESC"
 
     # Execute the query
     products = app.db.execute(query, **params)

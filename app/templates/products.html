@@ -95,7 +95,8 @@
 
         #search-input,
         #seller-search-input,
-        #top-k-input {
+        #top-k-input,
+        #order-by-input {
             width: 300px;
             padding: 10px;
             font-size: 16px;
@@ -153,6 +154,10 @@
             <input type="text" id="search-input" placeholder="Search products by name...">
             <input type="text" id="seller-search-input" placeholder="Search products by seller...">
             <input type="number" id="top-k-input" placeholder="Top K most expensive products">
+            <select id="order-by-input">
+                <option value="price">Rating</option>
+                <option value="name">Sales</option>
+            </select>
         </div>
         <div class="product-grid">
             {% for product in products %}
@@ -209,6 +214,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const searchInput = document.getElementById('search-input');
     const sellerSearchInput = document.getElementById('seller-search-input');
     const topKInput = document.getElementById('top-k-input');
+    const orderByInput = document.getElementById('order-by-input');
     
     function createProductElement(product) {
         const productItem = document.createElement('div');
@@ -242,6 +248,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const sellerSearchTerm = sellerSearchInput.value.toLowerCase();
         const productSearchTerm = searchInput.value.toLowerCase();
         const topK = topKInput.value;
+        const orderBy = orderByInput.value.toLowerCase();
         
         fetch('/filter-products', {
             method: 'POST',
@@ -251,7 +258,8 @@ document.addEventListener('DOMContentLoaded', function () {
             body: JSON.stringify({
                 sellerSearchTerm: sellerSearchTerm,
                 productSearchTerm: productSearchTerm,
-                topK: topK
+                topK: topK,
+                orderBy: orderBy
             })
         })
         .then(response => response.json())
