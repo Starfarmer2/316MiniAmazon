@@ -77,7 +77,7 @@ def product_detail(product_id):
 def add_product():
     if not current_user.is_seller():
         flash('You do not have permission to add products.')
-        return redirect(url_for('products.all_products'))
+        return redirect(url_for('products.manage_inventory'))
     
     form = ProductForm()
     if form.validate_on_submit():
