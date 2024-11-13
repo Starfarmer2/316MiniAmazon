@@ -152,6 +152,7 @@ def filter_products():
     data = request.json
     seller_search_term = data.get('sellerSearchTerm', '').lower()
     product_search_term = data.get('productSearchTerm', '').lower()
+    category_search_term = data.get('categorySearchTerm', '').lower()
     order_by = data.get('orderBy').lower()
     top_k = data.get('topK')
 
@@ -181,6 +182,10 @@ def filter_products():
         query += ''' AND (LOWER(u.firstname) LIKE :seller_term 
                      OR LOWER(u.lastname) LIKE :seller_term)'''
         params['seller_term'] = f'%{seller_search_term}%'
+
+    if category_search_term:
+        query += ''' AND (LOWER(p.category) LIKE :category_term)'''
+        params['category_term'] = f'%{category_search_term}%'
     
     # Add ordering and limit for top K
     if top_k and top_k.isdigit():

@@ -95,6 +95,7 @@
 
         #search-input,
         #seller-search-input,
+        #category-search-input,
         #top-k-input,
         #order-by-input {
             width: 300px;
@@ -153,6 +154,7 @@
         <div class="search-container">
             <input type="text" id="search-input" placeholder="Search products by name...">
             <input type="text" id="seller-search-input" placeholder="Search products by seller...">
+            <input type="text" id="category-search-input" placeholder="Search products by category...">
             <input type="number" id="top-k-input" placeholder="Top K most expensive products">
             <select id="order-by-input">
                 <option value="none">None</option>
@@ -215,6 +217,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const productGrid = document.querySelector('.product-grid');
     const searchInput = document.getElementById('search-input');
     const sellerSearchInput = document.getElementById('seller-search-input');
+    const categorySearchInput = document.getElementById('category-search-input');
     const topKInput = document.getElementById('top-k-input');
     const orderByInput = document.getElementById('order-by-input');
     
@@ -249,6 +252,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function fetchFilteredProducts() {
         const sellerSearchTerm = sellerSearchInput.value.toLowerCase();
         const productSearchTerm = searchInput.value.toLowerCase();
+        const categorySearchTerm = categorySearchInput.value.toLowerCase();
         const topK = topKInput.value;
         const orderBy = orderByInput.value.toLowerCase();
         
@@ -260,6 +264,7 @@ document.addEventListener('DOMContentLoaded', function () {
             body: JSON.stringify({
                 sellerSearchTerm: sellerSearchTerm,
                 productSearchTerm: productSearchTerm,
+                categorySearchTerm: categorySearchTerm,
                 topK: topK,
                 orderBy: orderBy
             })
@@ -276,7 +281,7 @@ document.addEventListener('DOMContentLoaded', function () {
             
             // Show/hide pagination
             const paginationContainer = document.querySelector('.pagination-container');
-            if (sellerSearchTerm || productSearchTerm || topK) {
+            if (sellerSearchTerm || productSearchTerm || categorySearchTerm || topK) {
                 paginationContainer.style.display = 'none';
             } else {
                 paginationContainer.style.display = 'block';
@@ -308,6 +313,7 @@ document.addEventListener('DOMContentLoaded', function () {
     
     searchInput.addEventListener('input', debouncedFetch);
     sellerSearchInput.addEventListener('input', debouncedFetch);
+    categorySearchInput.addEventListener('input', debouncedFetch);
     topKInput.addEventListener('input', debouncedFetch);
     orderByInput.addEventListener('change', debouncedFetch);
 });
