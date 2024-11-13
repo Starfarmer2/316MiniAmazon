@@ -169,6 +169,7 @@
                 <p class="product-name">{{ product.prodname }}</p>
                 <p class="product-id">ID: {{ product.productid }}</p>
                 <p class="product-price">${{ "%.2f"|format(product.price) }}</p>
+                <p class="product-rating">${{ "%.2f"|format(product.avg_rating) }}</p>
                 <p>{{ product.description }}</p>
                 <a href="{{ url_for('products.product_detail', product_id=product.productid) }}"
                     class="btn btn-primary">View Details</a>
@@ -229,6 +230,7 @@ document.addEventListener('DOMContentLoaded', function () {
             <p class="product-name">${product.name}</p>
             <p class="product-id">ID: ${product.id}</p>
             <p class="product-price">$${product.price.toFixed(2)}</p>
+            <p class="product-rating">$${product.avg_rating.toFixed(2)}</p>
             <p>${product.description}</p>
             <p>Seller: ${product.seller_name}</p>
             <a href="/product/${product.id}" class="btn btn-primary">View Details</a>

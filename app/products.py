@@ -194,13 +194,15 @@ def filter_products():
     else:
         query += ' ORDER BY p.productid'
 
+    # Wrap result in subquery for avg_rating
+    query = f"SELECT * FROM ({query}) AS p JOIN (SELECT productid, AVG(rating) AS avg_rating FROM ProductReviews GROUP BY productid) AS pr ON p.productid = pr.productid ORDER BY pr.avg_rating DESC"
     # Wrap result in subquery for order_by
-    if order_by == 'rating':
-        query = f"SELECT * FROM ({query}) AS p JOIN (SELECT productid, AVG(rating) AS avg_rating FROM ProductReviews GROUP BY productid) AS pr ON p.productid = pr.productid ORDER BY pr.avg_rating DESC"
-    elif order_by == 'sales':
+    if order_by == 'sales':
         query = f"SELECT * FROM ({query}) AS p JOIN (SELECT productid, COUNT(*) AS sales FROM Purchases GROUP BY productid) AS o ON p.productid = o.productid ORDER BY o.sales DESC"
     elif order_by == 'quantity':
         query = f"SELECT * FROM ({query}) AS p ORDER BY p.quantity DESC"
+    elif order_by == 'rating':
+        query = f"SELECT * FROM ({query}) ORDER BY avg_rating DESC"
 
     print('Final query:', query)
     # Execute the query
@@ -214,7 +216,8 @@ def filter_products():
             "price": float(product.price),
             "description": product.description,
             "quantity": product.quantity,
-            "seller_name": f"{product.firstname} {product.lastname}"
+            "seller_name": f"{product.firstname} {product.lastname}",
+            "avg_rating": float(product.avg_rating),
         }
         for product in products
     ]
