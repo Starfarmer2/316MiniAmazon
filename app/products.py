@@ -195,7 +195,7 @@ def filter_products():
         query += ' ORDER BY p.productid'
 
     # Wrap result in subquery for avg_rating
-    query = f"SELECT * FROM ({query}) AS p JOIN (SELECT productid, AVG(rating) AS avg_rating FROM ProductReviews GROUP BY productid) AS pr ON p.productid = pr.productid ORDER BY pr.avg_rating DESC"
+    query = f"SELECT p.*, pr.avg_rating FROM ({query}) AS p JOIN (SELECT productid, AVG(rating) AS avg_rating FROM ProductReviews GROUP BY productid) AS pr ON p.productid = pr.productid ORDER BY pr.avg_rating DESC"
     # Wrap result in subquery for order_by
     if order_by == 'sales':
         query = f"SELECT * FROM ({query}) AS p JOIN (SELECT productid, COUNT(*) AS sales FROM Purchases GROUP BY productid) AS o ON p.productid = o.productid ORDER BY o.sales DESC"
