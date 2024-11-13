@@ -215,21 +215,46 @@ def purchase_summary(user_id):
         flash('You can only view your own purchases.')
         return redirect(url_for('index.index'))
 
-    # Query to count purchases by category
+    # Query to get the total quantity of purchases by category
     summary_data = app.db.execute('''
-        SELECT p.category, COUNT(*) AS purchase_count
+        SELECT p.category, SUM(pu.quantity) AS total_quantity
         FROM Purchases pu
         JOIN Products p ON pu.productid = p.productid
         WHERE pu.userid = :user_id
         GROUP BY p.category
-        ORDER BY purchase_count DESC
+        ORDER BY total_quantity DESC
+    ''', user_id=user_id)
+
+    # Query to get detailed purchase information
+    detailed_purchases = app.db.execute('''
+        SELECT p.productid, p.prodname, pu.dtime, pu.quantity, pu.status, p.price, 
+               p.category, s.firstname AS seller_firstname, s.lastname AS seller_lastname
+        FROM Purchases pu
+        JOIN Products p ON pu.productid = p.productid
+        JOIN Sellers s ON p.sellerid = s.userid
+        WHERE pu.userid = :user_id
     ''', user_id=user_id)
 
     # Convert the data into a format suitable for JSON
     categories = [row[0] for row in summary_data]
     purchase_counts = [row[1] for row in summary_data]
 
-    return jsonify({"categories": categories, "purchase_counts": purchase_counts})
+    purchases = [
+        {
+            "product_id": row[0],
+            "product_name": row[1],
+            "purchase_time": row[2],
+            "quantity": row[3],
+            "status": row[4],
+            "price": row[5],
+            "category": row[6],
+            "seller_name": f"{row[7]} {row[8]}"
+        }
+        for row in detailed_purchases
+    ]
+
+    return jsonify({"categories": categories, "purchase_counts": purchase_counts, "purchases": purchases})
+
 
 
 @bp.route('/user/<int:user_id>/profile')
