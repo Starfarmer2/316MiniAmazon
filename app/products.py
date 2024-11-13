@@ -203,6 +203,8 @@ def filter_products():
         query = f"SELECT * FROM ({query}) AS p ORDER BY p.quantity DESC"
     elif order_by == 'rating':
         query = f"SELECT * FROM ({query}) AS p ORDER BY p.avg_rating DESC"
+    elif order_by == 'price':
+        query = f"SELECT * FROM ({query}) AS p ORDER BY p.price DESC"
 
     print('Final query:', query)
     # Execute the query
