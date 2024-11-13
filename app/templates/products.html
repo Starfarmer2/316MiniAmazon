@@ -224,12 +224,24 @@ document.addEventListener('DOMContentLoaded', function () {
     function createProductElement(product) {
         const productItem = document.createElement('div');
         productItem.className = 'product-item';
+
+        let starsHtml = '';
+        for (let i = 0; i < product.avg_rating; i++) {
+            starsHtml += '<i class="fas fa-star"></i>';
+        }
+
+        for (let i = product.avg_rating; i < 5; i++) {
+            starsHtml += '<i class="far fa-star"></i>';
+        }
         
         productItem.innerHTML = `
             <p class="product-name">${product.name}</p>
             <p class="product-id">ID: ${product.id}</p>
             <p class="product-price">$${product.price.toFixed(2)}</p>
-            <p class="product-rating">Rating: ${product.avg_rating.toFixed(2)}</p>
+            <div class="stars">
+                ${starsHtml}
+            </div>
+            
             <p>${product.description}</p>
             <p>Seller: ${product.seller_name}</p>
             <a href="/product/${product.id}" class="btn btn-primary">View Details</a>
@@ -240,6 +252,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 </form>
             ` : ''}
         `;
+
+        //<p class="product-rating">Rating: ${product.avg_rating.toFixed(2)}</p>
         
         return productItem;
     }
