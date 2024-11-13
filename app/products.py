@@ -195,7 +195,7 @@ def filter_products():
     elif order_by == 'sales':
         query = f"SELECT * FROM ({query}) AS p JOIN (SELECT productid, COUNT(*) AS sales FROM Purchases GROUP BY productid) AS o ON p.productid = o.productid ORDER BY o.sales DESC"
     elif order_by == 'quantity':
-        query = f"SELECT * FROM {query} AS p ORDER BY p.quantity DESC"
+        query = f"SELECT * FROM ({query}) AS p ORDER BY p.quantity DESC"
 
     print('Final query:', query)
     # Execute the query
