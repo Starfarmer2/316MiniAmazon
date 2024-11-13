@@ -281,7 +281,7 @@ document.addEventListener('DOMContentLoaded', function () {
             
             // Show/hide pagination
             const paginationContainer = document.querySelector('.pagination-container');
-            if (sellerSearchTerm || productSearchTerm || categorySearchTerm || topK) {
+            if (sellerSearchTerm || productSearchTerm || categorySearchTerm || topK || (orderBy !== 'none')) {
                 paginationContainer.style.display = 'none';
             } else {
                 paginationContainer.style.display = 'block';
