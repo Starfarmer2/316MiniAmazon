@@ -9,6 +9,123 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     
+    <script>
+        $(document).ready(function() {
+            function fetchAndUpdateData() {
+                // Gather filter values
+                const product_name = $('#product_name').val();
+                const seller_name = $('#seller_name').val();
+                const start_date = $('#start_date').val();
+                const end_date = $('#end_date').val();
+                const status = $('#status').val();
+    
+                // Construct the URL with query parameters
+                const url = new URL(`/user/{{ current_user.userid }}/purchase_summary`, window.location.origin);
+                if (product_name) url.searchParams.append('product_name', product_name);
+                if (seller_name) url.searchParams.append('seller_name', seller_name);
+                if (start_date) url.searchParams.append('start_date', start_date);
+                if (end_date) url.searchParams.append('end_date', end_date);
+                if (status) url.searchParams.append('status', status);
+    
+                // Fetch the filtered data from the backend
+                $.getJSON(url.toString(), function(data) {
+                    // Update the chart
+                    updateChart(data.categories, data.purchase_counts);
+    
+                    // Update the purchase grid
+                    updatePurchaseGrid(data.purchases);
+                });
+            }
+    
+            // Attach event listener to the filter button
+            $('#applyFiltersButton').on('click', function(e) {
+                e.preventDefault(); 
+                console.log("Apply Filters button clicked"); 
+                fetchAndUpdateData();
+            });
+    
+            // Update the chart with new data
+
+            // Define a variable to store the Chart instance
+let categoryChartInstance;
+
+function updateChart(categories, purchaseCounts) {
+    const ctx = document.getElementById('categoryChart').getContext('2d');
+
+    // If the chart already exists, destroy it
+    if (categoryChartInstance) {
+        categoryChartInstance.destroy();
+    }
+
+    console.log("Creating Chart...");
+    // Create a new chart and assign it to categoryChartInstance
+    categoryChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: categories,
+            datasets: [{
+                label: 'Number of Purchases',
+                data: purchaseCounts,
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Purchase Count'
+                    },
+                    ticks: {
+                        stepSize: 1 
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Category'
+                    }
+                }
+            }
+        }
+    });
+}
+
+    
+            // Update the purchase grid with new data
+            function updatePurchaseGrid(purchases) {
+                const purchaseGrid = $('.purchase-grid');
+                purchaseGrid.empty(); // Clear existing purchases
+    
+                if (purchases.length === 0) {
+                    purchaseGrid.append('<p class="text-center">No purchases found for your filters.</p>');
+                } else {
+                    purchases.forEach(purchase => {
+                        const purchaseItem = `
+                            <div class="purchase-item">
+                                <p class="purchase-id">Product: ${purchase.product_name}</p>
+                        <p>Product ID: ${purchase.product_id}</p>
+                        <p>Price: $${purchase.price}</p>
+                        <p class="purchase-time">Purchase Time: ${purchase.purchase_time}</p>
+                        <p>Quantity: ${purchase.quantity}</p>
+                        <p>Status: ${purchase.status ? 'Completed' : 'Pending'}</p>
+                        <p>Seller: ${purchase.seller_name}</p>
+                    </div>
+                `;
+                    purchaseGrid.append(purchaseItem);
+                });
+            }
+        }
+
+        // Initial data fetch on page load
+        fetchAndUpdateData();
+    });
+</script>
+    
     <style>
         body {
             background-image: url(static/css/basketball.png);
@@ -118,18 +235,18 @@
         <h2 class="B_section_title">Your Purchase History</h2>
 
         <!-- Filter Form in a Single Row -->
-        <form class="filter-form" method="get">
-            <input type="text" name="product_name" placeholder="Search by Product Name" class="form-control" value="{{ request.args.get('product_name', '') }}">
-            <input type="text" name="seller_name" placeholder="Search by Seller Name" class="form-control" value="{{ request.args.get('seller_name', '') }}">
-            <input type="date" name="start_date" placeholder="Start Date" class="form-control" value="{{ request.args.get('start_date', '') }}">
-            <input type="date" name="end_date" placeholder="End Date" class="form-control" value="{{ request.args.get('end_date', '') }}">
-            <select name="status" class="form-control">
+        <form class="filter-form" id="filterForm">
+            <input type="text" id="product_name" name="product_name" placeholder="Search by Product Name" class="form-control" value="{{ request.args.get('product_name', '') }}">
+            <input type="text" id="seller_name" name="seller_name" placeholder="Search by Seller Name" class="form-control" value="{{ request.args.get('seller_name', '') }}">
+            <input type="date" id="start_date" name="start_date" placeholder="Start Date" class="form-control" value="{{ request.args.get('start_date', '') }}">
+            <input type="date" id="end_date" name="end_date" placeholder="End Date" class="form-control" value="{{ request.args.get('end_date', '') }}">
+            <select id="status" name="status" class="form-control">
                 <option value="">All Statuses</option>
                 <option value="1" {% if request.args.get('status') == '1' %}selected{% endif %}>Completed</option>
                 <option value="0" {% if request.args.get('status') == '0' %}selected{% endif %}>Pending</option>
             </select>
-            <button type="submit" class="btn btn-primary">Apply Filters</button>
-        </form>
+            <button type="button" id="applyFiltersButton" class="btn btn-primary">Apply Filters</button>
+        </form>        
         
         <!-- Bar Chart Section -->
         <h3 class="text-center mt-4">Total Purchases by Category</h3>

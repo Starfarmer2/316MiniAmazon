@@ -215,27 +215,64 @@ def purchase_summary(user_id):
         flash('You can only view your own purchases.')
         return redirect(url_for('index.index'))
 
-    # Query to get the total quantity of purchases by category
-    summary_data = app.db.execute('''
+    # Retrieve filter parameters from query string (passed from user_purchases or directly by the user)
+    product_name = request.args.get('product_name')
+    seller_name = request.args.get('seller_name')
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    status = request.args.get('status')
+
+    # Base query to get the total quantity of purchases by category with filters
+    query = '''
         SELECT p.category, SUM(pu.quantity) AS total_quantity
         FROM Purchases pu
         JOIN Products p ON pu.productid = p.productid
+        JOIN Sellers s ON p.sellerid = s.userid
         WHERE pu.userid = :user_id
-        GROUP BY p.category
-        ORDER BY total_quantity DESC
-    ''', user_id=user_id)
+    '''
+    params = {'user_id': user_id}
 
-    # Query to get detailed purchase information
-    detailed_purchases = app.db.execute('''
+    # Apply filters based on query parameters
+    if product_name:
+        query += ' AND p.prodname ILIKE :product_name'
+        params['product_name'] = f'%{product_name}%'
+    if seller_name:
+        query += ' AND (s.firstname || \' \' || s.lastname) ILIKE :seller_name'
+        params['seller_name'] = f'%{seller_name}%'
+    if start_date:
+        query += ' AND pu.dtime >= :start_date'
+        params['start_date'] = start_date
+    if end_date:
+        query += ' AND pu.dtime <= :end_date'
+        params['end_date'] = end_date
+    if status is not None and status != '':
+        params['status'] = bool(int(status))  # Convert to boolean if status is passed as '0' or '1'
+        query += ' AND pu.status = :status'
+
+    # Group by category and sort by total quantity
+    query += ' GROUP BY p.category ORDER BY total_quantity DESC'
+
+    # Execute the query with the dynamically built parameters
+    summary_data = app.db.execute(query, **params)
+
+    # Query to get detailed purchase information with the same filters
+    detailed_query = '''
         SELECT p.productid, p.prodname, pu.dtime, pu.quantity, pu.status, p.price, 
                p.category, s.firstname AS seller_firstname, s.lastname AS seller_lastname
         FROM Purchases pu
         JOIN Products p ON pu.productid = p.productid
         JOIN Sellers s ON p.sellerid = s.userid
         WHERE pu.userid = :user_id
-    ''', user_id=user_id)
+    '''
+    
+    # Apply the same filters to the detailed query
+    detailed_query += query[query.index('AND'):query.index('GROUP BY')] if 'AND' in query else ''
+    detailed_query += ' ORDER BY pu.dtime DESC'
 
-    # Convert the data into a format suitable for JSON
+    # Execute the detailed query
+    detailed_purchases = app.db.execute(detailed_query, **params)
+
+    # Convert data into JSON format
     categories = [row[0] for row in summary_data]
     purchase_counts = [row[1] for row in summary_data]
 
@@ -254,6 +291,7 @@ def purchase_summary(user_id):
     ]
 
     return jsonify({"categories": categories, "purchase_counts": purchase_counts, "purchases": purchases})
+
 
 
 
