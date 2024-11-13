@@ -169,7 +169,6 @@
                 <p class="product-name">{{ product.prodname }}</p>
                 <p class="product-id">ID: {{ product.productid }}</p>
                 <p class="product-price">${{ "%.2f"|format(product.price) }}</p>
-                <p class="product-rating">${{ "%.2f"|format(product.avg_rating) }}</p>
                 <p>{{ product.description }}</p>
                 <a href="{{ url_for('products.product_detail', product_id=product.productid) }}"
                     class="btn btn-primary">View Details</a>
