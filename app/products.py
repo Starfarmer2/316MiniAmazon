@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, render_template, redirect, url_for, flash, request, abort, current_app as app
+from flask import Blueprint, jsonify, render_template, send_file, redirect, url_for, flash, request, abort, current_app as app
 from flask_login import current_user, login_required
 from flask_wtf import FlaskForm
 from wtforms import StringField, FloatField, IntegerField, TextAreaField, SubmitField
@@ -7,6 +7,7 @@ from .models.product import Product
 from .models.product_review import ProductReview
 from .models.user import User
 from math import ceil
+import os
 
 bp = Blueprint('products', __name__)
 PRODUCTS_PER_PAGE = 20
@@ -147,6 +148,23 @@ def search_products():
     products = Product.search(query)
     return render_template('search_results.html', products=products, query=query)
 
+@bp.route('/product_image/<path:filename>')
+def serve_product_image(filename):
+    """
+    Serve product images with graceful fallback to default image when file not found.
+    Suppresses file not found errors from logging.
+    """
+    try:
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        return send_file(file_path)
+    except FileNotFoundError:
+        # Instead of raising an error, redirect to a default image
+        return redirect(url_for('static', filename='images/no-image-available.png')), 303
+    except Exception as e:
+        # Log other types of errors that might be important
+        app.logger.error(f"Error serving image {filename}: {str(e)}")
+        return redirect(url_for('static', filename='images/no-image-available.png')), 303
+
 @bp.route('/filter-products', methods=['POST'])
 def filter_products():
     data = request.json
@@ -215,6 +233,7 @@ def filter_products():
         {
             "id": product.productid,
             "name": product.prodname,
+            "imagepath": product.imagepath,
             "price": float(product.price),
             "description": product.description,
             "quantity": product.quantity,

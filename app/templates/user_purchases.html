@@ -95,6 +95,8 @@ function updateChart(categories, purchaseCounts) {
     });
 }
 
+var baseImageUrl = "{{ url_for('products.serve_product_image', filename='') }}";
+
     
             // Update the purchase grid with new data
             function updatePurchaseGrid(purchases) {
@@ -105,11 +107,11 @@ function updateChart(categories, purchaseCounts) {
                     purchaseGrid.append('<p class="text-center">No purchases found for your filters.</p>');
                 } else {
                     purchases.forEach(purchase => {
+                        const imageUrl = purchase.imagepath ? baseImageUrl + purchase.imagepath : '/static/images/no-image-available.png';
                         const purchaseItem = `
                     <div class="purchase-item">
                         <p class="purchase-id">Product: ${purchase.product_name}</p>
-                        <img src="${purchase.imagepath}" class="product-image"
-                            onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/no-image-available.png') }}';">
+                        <img src="${imageUrl}" class='product-image'>
                         <p>Product ID: ${purchase.product_id}</p>
                         <p>Price: $${purchase.price}</p>
                         <p class="purchase-time">Purchase Time: ${purchase.purchase_time}</p>

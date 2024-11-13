@@ -173,11 +173,9 @@
         <div class="product-grid">
             {% for product in products %}
             <div class="product-item">
-                {% if product.image_url %}
-                <img src="{{ product.image_url }}" alt="Image of {{ product.prodname }}" width="200" height="200">
-                {% else %}
-                <img src="{{ url_for('static', filename='images/no-image-available.png') }}" alt="No image available" width="180" height="180">
-                {% endif %}
+                <img src="{{ url_for('products.serve_product_image', filename=product.imagepath) }}"
+                alt="Image of {{ product.prodname }}"  width = '200' height = '200'
+                onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/no-image-available.png') }}';">
                 <p class="product-name">{{ product.prodname }}</p>
                 <p class="product-id">ID: {{ product.productid }}</p>
                 <p class="product-price">${{ "%.2f"|format(product.price) }}</p>
@@ -225,6 +223,7 @@
     </div>
 
 <script>
+var baseImageUrl = "{{ url_for('products.serve_product_image', filename='') }}";
 document.addEventListener('DOMContentLoaded', function () {
     const productGrid = document.querySelector('.product-grid');
     const searchInput = document.getElementById('search-input');
@@ -245,8 +244,11 @@ document.addEventListener('DOMContentLoaded', function () {
         for (let i = product.avg_rating; i < 5; i++) {
             starsHtml += '<i class="far fa-star"></i>';
         }
+
+        const imageUrl = product.imagepath ? baseImageUrl + product.imagepath : '/static/images/no-image-available.png';
         
         productItem.innerHTML = `
+            <img src="${imageUrl}" width = '200' height = '200'>
             <p class="product-name">${product.name}</p>
             <p class="product-id">ID: ${product.id}</p>
             <p class="product-price">$${product.price.toFixed(2)}</p>

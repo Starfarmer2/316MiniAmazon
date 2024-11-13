@@ -257,8 +257,8 @@ def purchase_summary(user_id):
 
     # Query to get detailed purchase information with the same filters
     detailed_query = '''
-        SELECT p.productid, p.prodname, pu.dtime, pu.quantity, pu.status, p.price, 
-               p.category, s.firstname AS seller_firstname, s.lastname AS seller_lastname
+        SELECT p.productid, p.prodname, pu.dtime, pu.quantity, pu.status, p.price,
+               p.category, s.firstname AS seller_firstname, s.lastname AS seller_lastname, p.imagepath
         FROM Purchases pu
         JOIN Products p ON pu.productid = p.productid
         JOIN Sellers s ON p.sellerid = s.userid
@@ -285,7 +285,8 @@ def purchase_summary(user_id):
             "status": row[4],
             "price": row[5],
             "category": row[6],
-            "seller_name": f"{row[7]} {row[8]}"
+            "seller_name": f"{row[7]} {row[8]}",
+            "imagepath": row[9]
         }
         for row in detailed_purchases
     ]

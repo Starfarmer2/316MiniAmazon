@@ -106,7 +106,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-6">
-                <img src="{{ product.imagepath }}" 
+                <img src="{{ url_for('products.serve_product_image', filename=product.imagepath) }}"
                     alt="Image of {{ product.prodname }}" 
                     class="product-image"
                     onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/no-image-available.png') }}';">
