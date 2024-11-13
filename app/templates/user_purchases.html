@@ -106,8 +106,10 @@ function updateChart(categories, purchaseCounts) {
                 } else {
                     purchases.forEach(purchase => {
                         const purchaseItem = `
-                            <div class="purchase-item">
-                                <p class="purchase-id">Product: ${purchase.product_name}</p>
+                    <div class="purchase-item">
+                        <p class="purchase-id">Product: ${purchase.product_name}</p>
+                        <img src="${purchase.imagepath}" class="product-image"
+                            onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/no-image-available.png') }}';">
                         <p>Product ID: ${purchase.product_id}</p>
                         <p>Price: $${purchase.price}</p>
                         <p class="purchase-time">Purchase Time: ${purchase.purchase_time}</p>
@@ -181,6 +183,11 @@ function updateChart(categories, purchaseCounts) {
             padding: 15px;
             box-shadow: 1px 1px 5px grey;
             background-color: white;
+        }
+        .product-image {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 20px;
         }
         .purchase-id {
             font-family: 'Open Sans', sans-serif;

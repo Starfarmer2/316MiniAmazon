@@ -55,6 +55,7 @@
         }
 
         .product-item {
+            text-align: center; /* Centers the image and other text content */
             width: 18%;
             margin-bottom: 20px;
             padding: 15px;
@@ -172,6 +173,11 @@
         <div class="product-grid">
             {% for product in products %}
             <div class="product-item">
+                {% if product.image_url %}
+                <img src="{{ product.image_url }}" alt="Image of {{ product.prodname }}" width="200" height="200">
+                {% else %}
+                <img src="{{ url_for('static', filename='images/no-image-available.png') }}" alt="No image available" width="180" height="180">
+                {% endif %}
                 <p class="product-name">{{ product.prodname }}</p>
                 <p class="product-id">ID: {{ product.productid }}</p>
                 <p class="product-price">${{ "%.2f"|format(product.price) }}</p>
