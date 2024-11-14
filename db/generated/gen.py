@@ -9,7 +9,7 @@ num_users = 100
 num_sellers = num_users // 10
 num_products = 200
 num_purchases = 300
-num_product_reviews = 150
+num_product_reviews = 500
 num_seller_reviews = 100
 num_cart_items = 50
 
@@ -84,7 +84,8 @@ def gen_carts(num_cart_items, available_pids):
             productname = fake.sentence(nb_words=4)[:-1]
             quantity = fake.random_int(min=1, max=5)
             unit_price = round(random.uniform(1, 500), 2)
-            writer.writerow([userid, productid, productname, quantity, unit_price])
+            status = "in_cart"
+            writer.writerow([userid, productid, productname, quantity, unit_price, status])
         print(f'{num_cart_items} cart items generated')
 
 def gen_purchases(num_purchases, available_pids):
@@ -128,7 +129,8 @@ def gen_product_reviews(num_reviews, available_pids):
             dtime = fake.date_time_between(start_date='-1y', end_date='now')
             review = fake.paragraph(nb_sentences=2)
             rating = fake.random_int(min=1, max=5)
-            writer.writerow([productid, buyerid, dtime, review, rating])
+            helped_count = fake.random_int(min=0, max=30)
+            writer.writerow([productid, buyerid, dtime, review, rating, helped_count])
         print(f'{num_reviews} product reviews generated')
 
 def gen_seller_reviews(num_reviews, sellers):

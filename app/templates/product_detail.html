@@ -74,6 +74,9 @@
         .stars {
             color: #ffc107;
         } 
+        .helpful-section {
+            font-size: 0.9em;
+        }
         .seller-info {
             background-color: #e9ecef;
             padding: 15px;
@@ -145,25 +148,41 @@
             <!-- Reviews Section -->
             <div class="row mt-5">
                 <div class="col-12">
-                    <h2>Product Reviews</h2>
+                    <h2>Customer Reviews</h2>
                     {% if reviews %}
                         {% for review in reviews %}
                             <div class="review">
                                 <div class="review-header">
-                                    <div class="stars">
-                                        {% for _ in range(review.rating) %}
-                                            <i class="fas fa-star"></i>
-                                        {% endfor %}
-                                        {% for _ in range(5 - review.rating) %}
-                                            <i class="far fa-star"></i>
-                                        {% endfor %}
+                                    <div class="d-flex justify-content-between align-items-top">
+                                        <div class="stars">
+                                            {% for _ in range(review.rating) %}
+                                                <i class="fas fa-star"></i>
+                                            {% endfor %}
+                                            {% for _ in range(5 - review.rating) %}
+                                                <i class="far fa-star"></i>
+                                            {% endfor %}
+                                        </div>
+                                        <small>{{ review.dtime.strftime('%Y-%m-%d %H:%M') }}</small>
                                     </div>
-                                    <small>{{ review.dtime.strftime('%Y-%m-%d %H:%M') }}</small>
                                 </div>
                                 <p>{{ review.review }}</p>
-                                <small>By <a href="{{ url_for('users.user_profile', user_id=review.buyerid) }}" class="user-link">
-                                    {{ review.firstname }} {{ review.lastname }}
-                                </a></small>
+                                <div class="review-footer d-flex justify-content-between align-items-center">
+                                    <small>By <a href="{{ url_for('users.user_profile', user_id=review.buyerid) }}" class="user-link">
+                                        {{ review.firstname }} {{ review.lastname }}
+                                    </a></small>
+                                    <div class="helpful-section">
+                                        <span class="text-muted">
+                                            <i class="fas fa-thumbs-up"></i> 
+                                            {{ review.helpedcount }} {{ 'person found' if review.helpedcount == 1 else 'people found' }} this helpful
+                                        </span>
+                                        {% if current_user.is_authenticated and current_user.userid != review.buyerid %}
+                                            <button class="btn btn-sm btn-outline-secondary ml-2" 
+                                                    onclick="markHelpful({{ review.productid }}, {{ review.buyerid }})">
+                                                Mark as Helpful
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                </div>
                             </div>
                         {% endfor %}
                     {% else %}
@@ -190,6 +209,28 @@
                 }
             });
         });
+function markHelpful(productId, buyerId) {
+    fetch("{{ url_for('products.mark_helpful') }}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            product_id: productId,
+            buyer_id: buyerId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error marking review as helpful');
+    });
+}
     </script>
 </body>
 </html>

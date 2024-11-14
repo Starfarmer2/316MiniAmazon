@@ -58,20 +58,35 @@ def product_detail(product_id):
     
     seller = User.get(product.sellerid) if product is not None else abort(404)
 
-    # Fetch reviews with reviewer names
+    # Get reviews with the new sorting logic
     reviews = app.db.execute('''
-        SELECT pr.productid, pr.buyerid, pr.dtime, pr.review, pr.rating,
-               u.firstname, u.lastname
-        FROM ProductReviews pr
-        JOIN Users u ON pr.buyerid = u.userid
-        WHERE pr.productid = :productid
-        ORDER BY pr.dtime DESC
+        WITH TopHelpful AS (
+            SELECT pr.productid, pr.buyerid, pr.dtime, pr.review, pr.rating, pr.helpedcount,
+                   u.firstname, u.lastname
+            FROM ProductReviews pr
+            JOIN Users u ON pr.buyerid = u.userid
+            WHERE pr.productid = :productid
+            ORDER BY pr.helpedcount DESC
+            LIMIT 3
+        ),
+        RemainingReviews AS (
+            SELECT pr.productid, pr.buyerid, pr.dtime, pr.review, pr.rating, pr.helpedcount,
+                   u.firstname, u.lastname
+            FROM ProductReviews pr
+            JOIN Users u ON pr.buyerid = u.userid
+            WHERE pr.productid = :productid
+            AND (pr.productid, pr.buyerid) NOT IN (SELECT productid, buyerid FROM TopHelpful)
+            ORDER BY pr.dtime DESC
+        )
+        SELECT * FROM TopHelpful
+        UNION ALL
+        SELECT * FROM RemainingReviews
     ''', productid=product_id)
 
     return render_template('product_detail.html', 
-                           product=product, 
-                           seller=seller,
-                           reviews=reviews)
+                         product=product, 
+                         seller=seller,
+                         reviews=reviews)
 
 @bp.route('/add_product', methods=['GET', 'POST'])
 @login_required
@@ -256,3 +271,18 @@ def manage_inventory():
     """, sellerid=current_user.userid)
 
     return render_template('manage_inventory.html', form=form, products=products)
+
+@bp.route('/mark_helpful', methods=['POST'])
+@login_required
+def mark_helpful():
+    data = request.get_json()
+    product_id = data.get('product_id')
+    buyer_id = data.get('buyer_id')
+    
+    if current_user.userid == buyer_id:
+        return jsonify({'success': False, 'error': 'Cannot mark your own review as helpful'}), 400
+
+    result = ProductReview.mark_helpful(product_id, buyer_id, current_user.userid)
+    
+    return jsonify({'success': result is not None})
+

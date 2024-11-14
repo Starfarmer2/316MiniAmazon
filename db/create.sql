@@ -54,6 +54,7 @@ CREATE TABLE ProductReviews (
   dtime TIMESTAMP, 
   review VARCHAR(255), 
   rating INT NOT NULL CHECK(rating > 0 AND rating <= 5), 
+  helpedcount INT DEFAULT 0 CHECK (helpedcount >= 0),
   PRIMARY KEY (productid, buyerid)
 );
 
