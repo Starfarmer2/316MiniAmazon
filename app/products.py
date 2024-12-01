@@ -8,6 +8,7 @@ from .models.product_review import ProductReview
 from .models.user import User
 from math import ceil
 import os
+from datetime import datetime
 
 bp = Blueprint('products', __name__)
 PRODUCTS_PER_PAGE = 20
@@ -56,8 +57,58 @@ def product_detail(product_id):
     if product is None:
         abort(404)
     
-    seller = User.get(product.sellerid) if product is not None else abort(404)
+    seller = User.get(product.sellerid)
+    if seller is None:
+        abort(404)
+    
+    # Get all seller reviews
+    all_seller_reviews = app.db.execute('''
+        SELECT sr.rating, sr.review, sr.dtime,
+               u.firstname, u.lastname,
+               sr.buyerid
+        FROM SellerReviews sr
+        JOIN Users u ON sr.buyerid = u.userid
+        WHERE sr.sellerid = :sellerid
+        ORDER BY sr.dtime DESC
+    ''', sellerid=seller.userid)
 
+    # Format the reviews
+    formatted_reviews = []
+    for review in all_seller_reviews:
+        formatted_reviews.append({
+            'rating': review.rating,
+            'review': review.review,
+            'dtime': review.dtime,
+            'reviewer_name': f"{review.firstname} {review.lastname}",
+            'buyerid': review.buyerid
+        })
+
+    # Get seller review if it exists for current user
+    seller_review = None
+    has_purchased_from_seller = False
+    if current_user.is_authenticated:
+        # Check if user has purchased from this seller
+        purchase_check = app.db.execute('''
+            SELECT COUNT(*) 
+            FROM Purchases p
+            JOIN Products prod ON p.productid = prod.productid
+            WHERE p.userid = :userid AND prod.sellerid = :sellerid
+        ''', userid=current_user.userid, sellerid=seller.userid)
+        
+        has_purchased_from_seller = purchase_check[0][0] > 0 if purchase_check else False
+
+        # Get existing seller review if any
+        if has_purchased_from_seller:
+            review_check = app.db.execute('''
+                SELECT rating, review 
+                FROM SellerReviews 
+                WHERE buyerid = :buyerid AND sellerid = :sellerid
+            ''', buyerid=current_user.userid, sellerid=seller.userid)
+            if review_check:
+                seller_review = {
+                    'rating': review_check[0][0],
+                    'review': review_check[0][1]
+                }
     # Get reviews with the new sorting logic
     reviews = app.db.execute('''
         WITH TopHelpful AS (
@@ -82,11 +133,36 @@ def product_detail(product_id):
         UNION ALL
         SELECT * FROM RemainingReviews
     ''', productid=product_id)
+    
+    # Check if the current user has purchased this product
+    has_purchased = False
+    user_review = None
+    if current_user.is_authenticated:
+        purchase_check = app.db.execute('''
+            SELECT COUNT(*)
+            FROM Purchases
+            WHERE userid = :userid AND productid = :productid
+        ''', userid=current_user.userid, productid=product_id)
+        has_purchased = purchase_check[0][0] > 0
+        
+        # Get user's existing review if any
+        if has_purchased:
+            user_review = app.db.execute('''
+                SELECT review, rating
+                FROM ProductReviews
+                WHERE buyerid = :userid AND productid = :productid
+            ''', userid=current_user.userid, productid=product_id)
+            user_review = user_review[0] if user_review else None
 
     return render_template('product_detail.html', 
                          product=product, 
                          seller=seller,
-                         reviews=reviews)
+                         seller_review=seller_review, 
+                         has_purchased_from_seller=has_purchased_from_seller,
+                         reviews=reviews,
+                         all_seller_reviews=formatted_reviews,
+                         has_purchased=has_purchased,
+                         user_review=user_review)
 
 @bp.route('/add_product', methods=['GET', 'POST'])
 @login_required
@@ -137,7 +213,64 @@ def edit_product(product_id):
     # If form submission is invalid, re-render the form with errors
     return render_template('manage_inventory.html', form=form)
 
-
+@bp.route('/product/<int:product_id>/review', methods=['POST'])
+@login_required
+def add_review(product_id):
+    if not request.form.get('rating') or not request.form.get('review'):
+        flash('Both rating and review are required.')
+        return redirect(url_for('products.product_detail', product_id=product_id))
+    
+    # Check if user has purchased the product
+    rows = app.db.execute('''
+        SELECT COUNT(*) 
+        FROM Purchases 
+        WHERE userid = :userid AND productid = :productid
+    ''', userid=current_user.userid, productid=product_id)
+    
+    has_purchased = rows[0][0] > 0 if rows else False
+    
+    if not has_purchased:
+        flash('You can only review products you have purchased.')
+        return redirect(url_for('products.product_detail', product_id=product_id))
+    
+    try:
+        # Check for existing review
+        existing_review = app.db.execute('''
+            SELECT COUNT(*) 
+            FROM ProductReviews 
+            WHERE buyerid = :userid AND productid = :productid
+        ''', userid=current_user.userid, productid=product_id)
+        
+        if existing_review and existing_review[0][0] > 0:
+            # Update existing review
+            app.db.execute('''
+                UPDATE ProductReviews 
+                SET rating = :rating, review = :review, dtime = :dtime
+                WHERE buyerid = :userid AND productid = :productid
+            ''', 
+                rating=int(request.form['rating']),
+                review=request.form['review'],
+                dtime=datetime.now(),
+                userid=current_user.userid,
+                productid=product_id)
+            flash('Your review has been updated.')
+        else:
+            # Create new review
+            app.db.execute('''
+                INSERT INTO ProductReviews(productid, buyerid, dtime, review, rating, helpedcount, helped_by)
+                VALUES(:productid, :userid, :dtime, :review, :rating, 0, ARRAY[]::integer[])
+            ''',
+                productid=product_id,
+                userid=current_user.userid,
+                dtime=datetime.now(),
+                review=request.form['review'],
+                rating=int(request.form['rating']))
+            flash('Your review has been added successfully.')
+    except Exception as e:
+        print(f"Error saving review: {str(e)}")  # For debugging
+        flash(f'Error saving review: {str(e)}')
+        
+    return redirect(url_for('products.product_detail', product_id=product_id))
 
 @bp.route('/product/<int:product_id>/delete', methods=['POST'])
 @login_required

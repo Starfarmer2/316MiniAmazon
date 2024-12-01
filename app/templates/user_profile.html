@@ -12,6 +12,13 @@
             background-color: #f8f9fa;
             padding-top: 20px;
         }
+        .button-group {
+            display: inline-block;
+        }
+        .delete-form {
+            margin-left: 10px;
+            display: inline-block;
+        }
         .container {
             background-color: white;
             border-radius: 10px;
@@ -221,7 +228,50 @@
                 <li class="list-group-item"><strong>Email:</strong> {{ profile_user.email }}</li>
             </ul>
         </div>
-
+        {% if current_user.is_authenticated and current_user.userid != profile_user.userid %}
+        <div class="seller-review-section mt-4">
+            <h2>Write a Review for this Seller</h2>
+            
+            {% if has_purchased_from_seller %}
+                <form action="{{ url_for('users.add_seller_review', seller_id=profile_user.userid) }}" method="POST" class="review-form">
+                    <div class="form-group">
+                        <label for="rating">Rating:</label>
+                        <select name="rating" id="rating" class="form-control" required>
+                            <option value="">Select a rating</option>
+                            <option value="1" {% if existing_review and existing_review.rating == 1 %}selected{% endif %}>1 - Poor</option>
+                            <option value="2" {% if existing_review and existing_review.rating == 2 %}selected{% endif %}>2 - Fair</option>
+                            <option value="3" {% if existing_review and existing_review.rating == 3 %}selected{% endif %}>3 - Good</option>
+                            <option value="4" {% if existing_review and existing_review.rating == 4 %}selected{% endif %}>4 - Very Good</option>
+                            <option value="5" {% if existing_review and existing_review.rating == 5 %}selected{% endif %}>5 - Excellent</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="review">Your Review:</label>
+                        <textarea name="review" id="review" class="form-control" rows="4" required>{{ existing_review.review if existing_review else '' }}</textarea>
+                    </div>
+                    <div class="button-group mt-2">
+                        <button type="submit" class="btn btn-primary">
+                            {% if existing_review %}Update Review{% else %}Submit Review{% endif %}
+                        </button>
+                    </div>
+                </form>
+                
+                {% if existing_review %}
+                    <form action="{{ url_for('users.delete_seller_review', seller_id=profile_user.userid) }}" 
+                          method="POST" 
+                          class="delete-form"
+                          style="display: inline-block; margin-top: 10px;"
+                          onsubmit="return confirm('Are you sure you want to delete this review?');">
+                        <button type="submit" class="btn btn-danger">Delete Review</button>
+                    </form>
+                {% endif %}
+            {% else %}
+                <div class="alert alert-info">
+                    You need to purchase from this seller before you can leave a review.
+                </div>
+            {% endif %}
+        </div>
+        {% endif %}
         <div class="reviews-section">
             <h2>Recent Reviews</h2>
             
@@ -232,18 +282,19 @@
                         <h4>Product: 
                             <a href="{{ review.product_url }}" class="product-link">
                                 {{ review.prodname }}
-                            </a> 
-                            (ID: {{ review.productid }})
+                            </a>
                         </h4>
-                        <p class="seller-info">Sold by: 
-                            <a href="{{ url_for('users.user_profile', user_id=review.sellerid) }}" class="user-link">
-                                {{ review.seller_firstname }} {{ review.seller_lastname }}
-                            </a> 
-                            (ID: {{ review.sellerid }})
-                        </p>
                         <p class="rating">Rating: {{ '★' * review.rating }}{{ '☆' * (5 - review.rating) }}</p>
                         <p><strong>Review:</strong> {{ review.review }}</p>
                         <p class="text-muted">Date: {{ review.dtime.strftime('%Y-%m-%d %H:%M') }}</p>
+                        {% if current_user.userid == review.buyerid %}
+                            <form action="{{ url_for('users.delete_product_review', product_id=review.productid) }}" 
+                                  method="POST" 
+                                  onsubmit="return confirm('Are you sure you want to delete this review?');"
+                                  style="display: inline;">
+                                <button type="submit" class="btn btn-danger btn-sm">Delete Review</button>
+                            </form>
+                        {% endif %}
                     </div>
                 {% endfor %}
             {% else %}
@@ -254,15 +305,19 @@
             {% if recent_seller_reviews %}
                 {% for review_info in recent_seller_reviews %}
                     <div class="review-item">
-                        <h4>Seller: 
-                            <a href="{{ url_for('users.user_profile', user_id=review_info.review.sellerid) }}" class="user-link">
-                                {{ review_info.seller_firstname }} {{ review_info.seller_lastname }}
-                            </a> 
-                            (ID: {{ review_info.review.sellerid }})
-                        </h4>
+                        <h4>Review by {{ review_info.buyer_firstname }} {{ review_info.buyer_lastname }} 
+                            for {{ review_info.seller_firstname }} {{ review_info.seller_lastname }}</h4>
                         <p class="rating">Rating: {{ '★' * review_info.review.rating }}{{ '☆' * (5 - review_info.review.rating) }}</p>
                         <p><strong>Review:</strong> {{ review_info.review.review }}</p>
                         <p class="text-muted">Date: {{ review_info.review.dtime.strftime('%Y-%m-%d %H:%M') }}</p>
+                        {% if current_user.userid == review_info.review.buyerid %}
+                            <form action="{{ url_for('users.delete_seller_review', seller_id=review_info.review.sellerid) }}" 
+                                  method="POST" 
+                                  onsubmit="return confirm('Are you sure you want to delete this review?');"
+                                  style="display: inline;">
+                                <button type="submit" class="btn btn-danger btn-sm">Delete Review</button>
+                            </form>
+                        {% endif %}
                     </div>
                 {% endfor %}
             {% else %}

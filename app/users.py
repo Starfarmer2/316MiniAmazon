@@ -11,6 +11,7 @@ from .models.sellerreview import SellerReview
 from .models.product import Product
 from .models.seller import Seller
 from collections import namedtuple
+from datetime import datetime
 
 from flask import Blueprint
 bp = Blueprint('users', __name__)
@@ -293,48 +294,104 @@ def purchase_summary(user_id):
 
     return jsonify({"categories": categories, "purchase_counts": purchase_counts, "purchases": purchases})
 
-
-
-
 @bp.route('/user/<int:user_id>/profile')
 @login_required
 def user_profile(user_id):
     user = User.get(user_id)
     if user is None:
-        abort(404)  # User not found
+        abort(404)
     
-    # Get page number from request args, default to 1
+    # Fetch seller's products with pagination
     page = request.args.get('page', type=int, default=1)
-    per_page = 20  # Number of items per page
-    
-    # Fetch seller's products if the user is a seller
-    seller_products = Seller.get_seller_products(user_id)
-    total = len(seller_products)
-    
-    # Calculate start and end indices for current page
-    offset = (page - 1) * per_page
-    end_idx = offset + per_page
-    
-    # Slice the products for current page
-    products_for_page = seller_products[offset:end_idx] if seller_products else []
+    per_page = 20
 
-    # Create pagination object
-    pagination = Pagination(
-        page=page,
-        per_page=per_page,
-        total=total,
-        css_framework='bootstrap4',
-        display_msg='Displaying <b>{start} - {end}</b> of <b>{total}</b> products'
+    # Get total count of seller's products
+    total_count = app.db.execute('''
+        SELECT COUNT(*) 
+        FROM Products 
+        WHERE sellerid = :sellerid
+    ''', sellerid=user_id)
+    total = total_count[0][0] if total_count else 0
+
+    # Get paginated products
+    seller_products = app.db.execute('''
+        SELECT productid, sellerid, prodname, description, 
+               imagepath, price, quantity, category
+        FROM Products
+        WHERE sellerid = :sellerid
+        ORDER BY productid
+        LIMIT :limit OFFSET :offset
+    ''', 
+        sellerid=user_id,
+        limit=per_page,
+        offset=(page - 1) * per_page
     )
 
-    # Rest of your existing code...
-    ProductReviewInfo = namedtuple('ProductReviewInfo', [
-        'productid', 'buyerid', 'dtime', 'review', 'rating', 
-        'prodname', 'sellerid', 'seller_firstname', 'seller_lastname', 'product_url'
+    # Create pagination object
+    from flask_paginate import Pagination
+    pagination = Pagination(
+        page=page,
+        total=total,
+        per_page=per_page,
+        css_framework='bootstrap4'
+    )
+
+    # Get seller reviews with full user information
+    seller_reviews = app.db.execute('''
+        SELECT 
+            sr.buyerid,
+            sr.sellerid,
+            sr.dtime,
+            sr.rating,
+            sr.review,
+            buyer.firstname AS buyer_firstname,
+            buyer.lastname AS buyer_lastname,
+            seller.firstname AS seller_firstname,
+            seller.lastname AS seller_lastname
+        FROM SellerReviews sr
+        JOIN Users buyer ON sr.buyerid = buyer.userid
+        JOIN Users seller ON sr.sellerid = seller.userid
+        WHERE sr.sellerid = :sellerid
+        ORDER BY sr.dtime DESC
+        LIMIT 5
+    ''', sellerid=user_id)
+
+    Review = namedtuple('Review', ['review', 'sellerid', 'dtime', 'rating'])
+    SellerReviewInfo = namedtuple('SellerReviewInfo', [
+        'review', 'seller_firstname', 'seller_lastname',
+        'buyer_firstname', 'buyer_lastname'
     ])
+    
+    
+    recent_seller_reviews = []
+    for review in seller_reviews:
+        review_obj = Review(
+            review=review.review,
+            sellerid=review.sellerid,
+            dtime=review.dtime,
+            rating=review.rating
+        )
+        review_info = SellerReviewInfo(
+            review=review_obj,
+            seller_firstname=review.seller_firstname,
+            seller_lastname=review.seller_lastname,
+            buyer_firstname=review.buyer_firstname,
+            buyer_lastname=review.buyer_lastname
+        )
+        recent_seller_reviews.append(review_info)
+
+    # Get product reviews
     product_reviews = app.db.execute('''
-        SELECT pr.productid, pr.buyerid, pr.dtime, pr.review, pr.rating, 
-               p.prodname, s.userid AS sellerid, s.firstname AS seller_firstname, s.lastname AS seller_lastname
+        SELECT 
+            pr.productid,
+            pr.buyerid,
+            pr.dtime,
+            pr.review,
+            pr.rating,
+            p.prodname,
+            s.userid AS sellerid,
+            s.firstname AS seller_firstname,
+            s.lastname AS seller_lastname
         FROM ProductReviews pr
         JOIN Products p ON pr.productid = p.productid
         JOIN Sellers s ON p.sellerid = s.userid
@@ -342,30 +399,121 @@ def user_profile(user_id):
         ORDER BY pr.dtime DESC
         LIMIT 5
     ''', user_id=user_id)
+
+    ProductReviewInfo = namedtuple('ProductReviewInfo', [
+        'productid', 'buyerid', 'dtime', 'review', 'rating', 
+        'prodname', 'sellerid', 'seller_firstname', 'seller_lastname', 'product_url'
+    ])
+
     recent_product_reviews = [
-        ProductReviewInfo(*review, product_url=url_for('products.product_detail', product_id=review[0]))
+        ProductReviewInfo(
+            *review,
+            product_url=url_for('products.product_detail', product_id=review.productid)
+        )
         for review in product_reviews
     ]
 
-    seller_reviews = SellerReview.get_recent_by_user(user_id)
-    SellerReviewInfo = namedtuple('SellerReviewInfo', ['review', 'seller_firstname', 'seller_lastname'])
-    recent_seller_reviews = []
-    for review in seller_reviews:
-        seller = User.get(review.sellerid)
-        seller_firstname = seller.firstname if seller else "Unknown"
-        seller_lastname = seller.lastname if seller else "Seller"
-        review_info = SellerReviewInfo(review, seller_firstname, seller_lastname)
-        recent_seller_reviews.append(review_info)
+    # Check if current user has purchased from this seller
+    has_purchased_from_seller = False
+    if current_user.is_authenticated and current_user.userid != user_id:
+        purchase_check = app.db.execute('''
+            SELECT COUNT(*) 
+            FROM Purchases p
+            JOIN Products prod ON p.productid = prod.productid
+            WHERE p.userid = :userid AND prod.sellerid = :sellerid
+        ''', userid=current_user.userid, sellerid=user_id)
+        has_purchased_from_seller = purchase_check[0][0] > 0 if purchase_check else False
 
-    return render_template('user_profile.html', 
-                           profile_user=user,
-                           recent_product_reviews=recent_product_reviews,
-                           recent_seller_reviews=recent_seller_reviews,
-                           seller_products=products_for_page,
-                           pagination=pagination,
-                           total=total,
-                           per_page=per_page)  # Add this line
+    existing_review = None
+    if current_user.is_authenticated:
+        review_check = app.db.execute('''
+            SELECT rating, review 
+            FROM SellerReviews 
+            WHERE buyerid = :buyerid AND sellerid = :sellerid
+        ''', buyerid=current_user.userid, sellerid=user_id)
+        if review_check:
+            existing_review = {
+                'rating': review_check[0][0],
+                'review': review_check[0][1]
+            }
+    
+    return render_template('user_profile.html',
+                         profile_user=user,
+                         recent_product_reviews=recent_product_reviews,
+                         recent_seller_reviews=recent_seller_reviews,
+                         has_purchased_from_seller=has_purchased_from_seller,
+                         seller_products=seller_products,
+                         pagination=pagination,
+                         total=total,
+                          existing_review=existing_review,
+                         per_page=per_page)
 
+@bp.route('/seller/<int:seller_id>/review', methods=['POST'])
+@login_required
+def add_seller_review(seller_id):
+    print(f"Received review submission for seller {seller_id}")  # Debug print
+    print(f"Form data: {request.form}")  # Debug print
+    
+    if not request.form.get('rating') or not request.form.get('review'):
+        flash('Both rating and review are required.')
+        return redirect(url_for('users.user_profile', user_id=seller_id))
+    
+    # Check if user has purchased from this seller
+    purchase_check = app.db.execute('''
+        SELECT COUNT(*) 
+        FROM Purchases p
+        JOIN Products prod ON p.productid = prod.productid
+        WHERE p.userid = :userid AND prod.sellerid = :sellerid
+    ''', userid=current_user.userid, sellerid=seller_id)
+    
+    print(f"Purchase check result: {purchase_check}")  # Debug print
+    
+    if not purchase_check or purchase_check[0][0] == 0:
+        flash('You can only review sellers you have purchased from.')
+        return redirect(url_for('users.user_profile', user_id=seller_id))
+    
+    try:
+        # Check for existing review
+        existing_review = app.db.execute('''
+            SELECT COUNT(*) 
+            FROM SellerReviews 
+            WHERE buyerid = :userid AND sellerid = :sellerid
+        ''', userid=current_user.userid, sellerid=seller_id)
+        
+        current_time = datetime.now()
+        
+        if existing_review and existing_review[0][0] > 0:
+            # Update existing review
+            app.db.execute('''
+                UPDATE SellerReviews 
+                SET rating = :rating, review = :review, dtime = :dtime
+                WHERE buyerid = :userid AND sellerid = :sellerid
+            ''', 
+                rating=int(request.form['rating']),
+                review=request.form['review'],
+                dtime=current_time,
+                userid=current_user.userid,
+                sellerid=seller_id)
+            flash('Your seller review has been updated.')
+        else:
+            # Create new review
+            print("Creating new review")  # Debug print
+            app.db.execute('''
+                INSERT INTO SellerReviews(buyerid, sellerid, dtime, rating, review)
+                VALUES(:buyerid, :sellerid, :dtime, :rating, :review)
+            ''',
+                buyerid=current_user.userid,
+                sellerid=seller_id,
+                dtime=current_time,
+                rating=int(request.form['rating']),
+                review=request.form['review'])
+            flash('Your seller review has been added successfully.')
+            
+    except Exception as e:
+        print(f"Error saving seller review: {str(e)}")  # Debug print
+        flash(f'Error saving seller review: {str(e)}')
+    
+    return redirect(url_for('users.user_profile', user_id=seller_id))
 
 @bp.route('/api/seller/<int:sellerid>/products', methods=['GET'])
 @login_required
@@ -378,3 +526,47 @@ def get_seller_products_api(sellerid):
         return jsonify(products), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@bp.route('/delete_product_review/<int:product_id>', methods=['POST'])
+@login_required
+def delete_product_review(product_id):
+    print(f"Delete product review route accessed for product_id: {product_id}")  # Debug print
+    try:
+        result = app.db.execute('''
+            DELETE FROM ProductReviews 
+            WHERE productid = :productid 
+            AND buyerid = :buyerid
+        ''', 
+        productid=product_id,
+        buyerid=current_user.userid)
+        
+        print(f"Delete result: {result}")  # Debug print
+        flash('Review deleted successfully')
+        
+    except Exception as e:
+        print(f"Error in delete_product_review: {str(e)}")  # Debug print
+        flash('Error deleting review')
+    
+    return redirect(url_for('products.product_detail', product_id=product_id))
+
+@bp.route('/delete_seller_review/<int:seller_id>', methods=['POST'])
+@login_required
+def delete_seller_review(seller_id):
+    print(f"Delete seller review route accessed for seller_id: {seller_id}")  # Debug print
+    try:
+        result = app.db.execute('''
+            DELETE FROM SellerReviews 
+            WHERE sellerid = :sellerid 
+            AND buyerid = :buyerid
+        ''', 
+        sellerid=seller_id,
+        buyerid=current_user.userid)
+        
+        print(f"Delete result: {result}")  # Debug print
+        flash('Review deleted successfully')
+        
+    except Exception as e:
+        print(f"Error in delete_seller_review: {str(e)}")  # Debug print
+        flash('Error deleting review')
+    
+    return redirect(url_for('users.user_profile', user_id=seller_id))
