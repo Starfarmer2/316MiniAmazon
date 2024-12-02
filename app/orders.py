@@ -76,13 +76,54 @@ def order_confirmation(purchase_time):
 @bp.route('/order_fulfillment', methods=['GET'])
 @login_required
 def order_fulfillment():
+    #renders the Order Fulfillment page for sellers.
+    
+    search_query = request.args.get('search', '').strip()
+    status_filter = request.args.get('status', '').lower()  # 'true', 'false', or ''
+    
+    #sQL fetch orders related to the current seller
+    base_query = """
+        SELECT p.productid, p.userid AS buyer_id, p.dtime, p.quantity, p.status,
+               u.firstname || ' ' || u.lastname AS buyer_name, u.address, pr.prodname
+        FROM Purchases p
+        JOIN Products pr ON p.productid = pr.productid
+        JOIN Users u ON p.userid = u.userid
+        WHERE pr.sellerid = :seller_id
     """
-    Render the Order Fulfillment page for sellers.
-    Currently returns an empty page with no data.
-    """
-    # Placeholder for actual implementation
-    orders = []  # Replace with real order data in future
-    return render_template('order_fulfillment.html', orders=orders)
+    params = {'seller_id': current_user.userid}
+    
+    #search and filter conditions
+    if search_query:
+        base_query += """
+            AND (u.firstname || ' ' || u.lastname ILIKE :search
+                 OR u.address ILIKE :search
+                 OR pr.prodname ILIKE :search)
+        """
+        params['search'] = f"%{search_query}%"
+    
+    if status_filter in ['true', 'false']:
+        base_query += " AND p.status = :status"
+        params['status'] = (status_filter == 'true')  #string to boolean
+    
+    #dd reverse chronological order
+    base_query += " ORDER BY p.dtime DESC"
+    
+    orders = app.db.execute(base_query, **params)
+
+    order_list = []
+    for order in orders:
+        order_list.append({
+            'productid': order.productid,
+            'buyer_id': order.buyer_id,
+            'dtime': order.dtime,
+            'quantity': order.quantity,
+            'status': order.status,
+            'buyer_name': order.buyer_name,
+            'address': order.address,
+            'prodname': order.prodname,
+        })
+    
+    return render_template('order_fulfillment.html', orders=order_list)
 
 
 @bp.route('/order_fulfillment/mark_fulfilled/<int:product_id>/<int:buyer_id>/<string:dtime>', methods=['POST'])
