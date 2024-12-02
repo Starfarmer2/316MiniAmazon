@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Fulfillment - Mamazon</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding-top: 70px;
+        }
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            padding: 15px 20px;
+            background-color: #f8f9fa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0,0,0,.1);
+        }
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        #HeaderName {
+            text-decoration: none;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .order-section {
+            margin-top: 20px;
+        }
+        .order-item {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #f9f9f9;
+        }
+        .order-item h4 {
+            margin-top: 0;
+        }
+        .order-item .buyer-info {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a id="HeaderName" href="{{ url_for('index.index') }}" class="btn btn-outline-primary">Home</a>
+        <div class="header-buttons">
+            <a class="btn btn-outline-primary" href="{{ url_for('products.all_products') }}">All Products</a>
+            <a class="btn btn-outline-primary" href="{{ url_for('users.account') }}">Account</a>
+            {% if current_user.is_authenticated %}
+                <a class="btn btn-outline-primary" href="{{ url_for('products.manage_inventory') }}">Manage Inventory</a>
+                <a class="btn btn-outline-primary" href="{{ url_for('orders.order_fulfillment') }}">Order Fulfillment</a>
+            {% endif %}
+            <a href="{{ url_for('users.logout') }}" class="btn btn-outline-primary">Log out</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1 class="mb-4">Order Fulfillment</h1>
+
+        <!-- Search and Filter Section -->
+        <form class="mb-4" method="GET" action="{{ url_for('orders.order_fulfillment') }}">
+            <div class="form-row">
+                <div class="col-md-6">
+                    <input type="text" class="form-control" name="search" placeholder="Search by buyer, address, or product">
+                </div>
+                <div class="col-md-3">
+                    <select class="form-control" name="status">
+                        <option value="">All Statuses</option>
+                        <option value="true">Fulfilled</option>
+                        <option value="false">Pending</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary btn-block">Search</button>
+                </div>
+            </div>
+        </form>
+
+        <!-- Orders Section -->
+        <div class="order-section">
+            {% if orders %}
+                {% for order in orders %}
+                    <div class="order-item">
+                        <h4>Order Date: {{ order.dtime.strftime('%Y-%m-%d %H:%M:%S') }}</h4>
+                        <p class="buyer-info"><strong>Buyer:</strong> {{ order.buyer_name }} ({{ order.address }})</p>
+                        <p><strong>Total Items:</strong> {{ order.total_items }}</p>
+                        <p><strong>Status:</strong> {{ "Fulfilled" if order.status else "Pending" }}</p>
+                        <form action="{{ url_for('orders.mark_fulfilled', product_id=order.productid, buyer_id=order.userid, dtime=order.dtime) }}" method="POST">
+                            {% if not order.status %}
+                                <button type="submit" class="btn btn-success">Mark as Fulfilled</button>
+                            {% endif %}
+                        </form>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No orders found.</p>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

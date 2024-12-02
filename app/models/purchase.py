@@ -94,7 +94,7 @@ class Purchase:
                 RETURNING productid, userid, dtime, quantity, status
                 ''',
                 productid=productid, userid=userid, dtime=datetime.now(),
-                quantity=quantity, status=True  # Passing parameters directly
+                quantity=quantity, status=False  #Status is false at first, until order is marked fulfulled by seller
             )
 
             if purchase_row:
