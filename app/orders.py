@@ -71,3 +71,26 @@ def order_confirmation(purchase_time):
                            purchases=purchase_details, 
                            total=total, 
                            purchase_time=purchase_time)
+
+
+@bp.route('/order_fulfillment', methods=['GET'])
+@login_required
+def order_fulfillment():
+    """
+    Render the Order Fulfillment page for sellers.
+    Currently returns an empty page with no data.
+    """
+    # Placeholder for actual implementation
+    orders = []  # Replace with real order data in future
+    return render_template('order_fulfillment.html', orders=orders)
+
+
+@bp.route('/order_fulfillment/mark_fulfilled/<int:product_id>/<int:buyer_id>/<string:dtime>', methods=['POST'])
+@login_required
+def mark_fulfilled(product_id, buyer_id, dtime):
+    """
+    Handle marking an order item as fulfilled.
+    """
+    # Placeholder for actual implementation
+    flash(f"Order with product ID {product_id} for buyer ID {buyer_id} has been marked as fulfilled.")
+    return redirect(url_for('orders.order_fulfillment'))
