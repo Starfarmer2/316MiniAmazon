@@ -340,18 +340,6 @@
                                     <small>By <a href="{{ url_for('users.user_profile', user_id=review.buyerid) }}" class="user-link">
                                         {{ review.firstname }} {{ review.lastname }}
                                     </a></small>
-                                    <div class="helpful-section">
-                                        <span class="text-muted">
-                                            <i class="fas fa-thumbs-up"></i> 
-                                            {{ review.helpedcount }} {{ 'person found' if review.helpedcount == 1 else 'people found' }} this helpful
-                                        </span>
-                                        {% if current_user.is_authenticated and current_user.userid != review.buyerid %}
-                                            <button class="btn btn-sm btn-outline-secondary ml-2" 
-                                                    onclick="markHelpful({{ review.productid }}, {{ review.buyerid }})">
-                                                Mark as Helpful
-                                            </button>
-                                        {% endif %}
-                                    </div>
                                 </div>
                             </div>
                         {% endfor %}
@@ -410,28 +398,6 @@
                 }
             });
         });
-function markHelpful(productId, buyerId) {
-    fetch("{{ url_for('products.mark_helpful') }}", {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            product_id: productId,
-            buyer_id: buyerId
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error marking review as helpful');
-    });
-}
     </script>
 </body>
 </html>

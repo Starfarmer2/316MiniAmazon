@@ -129,8 +129,7 @@ def gen_product_reviews(num_reviews, available_pids):
             dtime = fake.date_time_between(start_date='-1y', end_date='now')
             review = fake.paragraph(nb_sentences=2)
             rating = fake.random_int(min=1, max=5)
-            helped_count = fake.random_int(min=0, max=30)
-            writer.writerow([productid, buyerid, dtime, review, rating, helped_count])
+            writer.writerow([productid, buyerid, dtime, review, rating])
         print(f'{num_reviews} product reviews generated')
 
 def gen_seller_reviews(num_reviews, sellers):
