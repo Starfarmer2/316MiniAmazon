@@ -17,3 +17,7 @@ SELECT pg_catalog.setval('public.products_productid_seq',
 \COPY ProductReviews FROM 'ProductReview1.csv' WITH DELIMITER ',' NULL '' CSV
 
 \COPY SellerReviews FROM 'SellerReview1.csv' WITH DELIMITER ',' NULL '' CSV
+
+\COPY MarkedProductReviewHelpful FROM 'MarkedProductReviewHelpful1.csv' WITH DELIMITER ',' NULL '' CSV
+
+\COPY MarkedSellerReviewHelpful FROM 'MarkedSellerReviewHelpful1.csv' WITH DELIMITER ',' NULL '' CSV

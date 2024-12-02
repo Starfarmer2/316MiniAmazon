@@ -341,6 +341,22 @@
                                         {{ review.firstname }} {{ review.lastname }}
                                     </a></small>
                                 </div>
+                                <div class="review-footer">
+                                    <span>{{ review.helpful_count|default(0) }} found this helpful</span>
+                                    {% if current_user.is_authenticated and current_user.userid != review.buyerid %}
+                                        <form action="{{ url_for('products.toggle_helpful') }}" method="POST">
+                                            <input type="hidden" name="reviewid" value="{{ review.reviewid }}">
+                                            <input type="hidden" name="product_id" value="{{ product.productid }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                                {% if review.marked_helpful_by_user %}
+                                                    Remove Helpful
+                                                {% else %}
+                                                    Mark Helpful
+                                                {% endif %}
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </div>
                             </div>
                         {% endfor %}
                     {% else %}
@@ -372,6 +388,22 @@
                                         {{ review.reviewer_name }}</a>
                                     </small>
                                 </div>
+                                <div class="review-footer"> 
+                                    <span>{{ review.helpful_count|default(0) }} found this helpful TODO</span>
+                                    {% if current_user.is_authenticated and current_user.userid != review.buyerid %}
+                                        <form action="{{ url_for('products.toggle_helpful') }}" method="POST">
+                                            <input type="hidden" name="reviewid" value="{{ review.reviewid }}">
+                                            <input type="hidden" name="product_id" value="{{ product.productid }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                                {% if review.marked_helpful_by_user %}
+                                                    Remove Helpful
+                                                {% else %}
+                                                    Mark Helpful
+                                                {% endif %}
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </div>
                             </div>
                         {% endfor %}
                     {% else %}
@@ -398,6 +430,26 @@
                 }
             });
         });
+
+function toggleHelpful(reviewid, type) {
+    fetch('/toggle-helpful', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            reviewid: reviewid,
+            type: type
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        const button = event.target;
+        const countSpan = button.previousElementSibling;
+        countSpan.textContent = `${data.helpful_count} found this helpful`;
+        button.textContent = data.marked ? 'Remove Helpful' : 'Mark Helpful';
+    });
+}
     </script>
 </body>
 </html>

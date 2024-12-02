@@ -98,13 +98,22 @@ def product_detail(product_id):
                 }
 
     reviews = app.db.execute('''
-        SELECT pr.productid, pr.buyerid, pr.dtime, pr.review, pr.rating,
-               u.firstname, u.lastname
+        SELECT pr.reviewid, pr.productid, pr.buyerid, pr.dtime, pr.review, pr.rating,
+               u.firstname, u.lastname,
+               COUNT(DISTINCT mph.user_id) as helpful_count,
+               EXISTS(
+                   SELECT 1 FROM MarkedProductReviewHelpful mph2 
+                   WHERE mph2.reviewid = pr.reviewid 
+                   AND mph2.user_id = :current_user_id
+               ) as marked_helpful_by_user
         FROM ProductReviews pr
         JOIN Users u ON pr.buyerid = u.userid
+        LEFT JOIN MarkedProductReviewHelpful mph ON pr.reviewid = mph.reviewid
         WHERE pr.productid = :productid
-        ORDER BY pr.dtime DESC
-    ''', productid=product_id)
+        GROUP BY pr.reviewid, pr.productid, pr.buyerid, pr.dtime, pr.review, pr.rating,
+                 u.firstname, u.lastname
+        ORDER BY helpful_count DESC, pr.dtime DESC
+    ''', productid=product_id, current_user_id=current_user.userid if current_user.is_authenticated else None)
     
     has_purchased = False
     user_review = None
@@ -366,3 +375,36 @@ def manage_inventory():
     """, sellerid=current_user.userid)
 
     return render_template('manage_inventory.html', form=form, products=products)
+
+@bp.route('/toggle-helpful', methods=['POST'])
+@login_required
+def toggle_helpful():
+    try:
+        reviewid = request.form.get('reviewid')  # Changed from json to form
+        
+        # Check if already marked
+        marked = app.db.execute('''
+            SELECT 1 FROM MarkedProductReviewHelpful 
+            WHERE reviewid = :reviewid AND user_id = :user_id
+        ''', reviewid=reviewid, user_id=current_user.userid)
+        
+        if marked:
+            app.db.execute('''
+                DELETE FROM MarkedProductReviewHelpful
+                WHERE reviewid = :reviewid AND user_id = :user_id
+            ''', reviewid=reviewid, user_id=current_user.userid)
+            flash('Removed helpful mark')
+        else:
+            app.db.execute('''
+                INSERT INTO MarkedProductReviewHelpful(reviewid, user_id)
+                VALUES(:reviewid, :user_id)
+            ''', reviewid=reviewid, user_id=current_user.userid)
+            flash('Marked as helpful')
+        
+        product_id = request.form.get('product_id')  # Add this to get product_id
+        return redirect(url_for('products.product_detail', product_id=product_id))
+        
+    except Exception as e:
+        print(f"Error in toggle_helpful: {str(e)}")
+        flash('Error updating helpful status')
+        return redirect(url_for('index.index'))

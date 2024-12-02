@@ -12,6 +12,7 @@ num_purchases = 300
 num_product_reviews = 500
 num_seller_reviews = 100
 num_cart_items = 50
+num_marks = 10
 
 categories = ['personal wellness', 'food', 'athletics']
 Faker.seed(0)
@@ -115,10 +116,9 @@ def gen_purchases(num_purchases, available_pids):
 def gen_product_reviews(num_reviews, available_pids):
     with open('ProductReview1.csv', 'w') as f:
         writer = get_csv_writer(f)
-        print('Product Reviews...', end=' ', flush=True)
         seen_combinations = set()
         
-        for _ in range(num_reviews):
+        for review_id in range(num_reviews):
             while True:
                 productid = fake.random_element(available_pids)
                 buyerid = fake.random_int(min=0, max=num_users-1)
@@ -129,16 +129,15 @@ def gen_product_reviews(num_reviews, available_pids):
             dtime = fake.date_time_between(start_date='-1y', end_date='now')
             review = fake.paragraph(nb_sentences=2)
             rating = fake.random_int(min=1, max=5)
-            writer.writerow([productid, buyerid, dtime, review, rating])
+            writer.writerow([review_id, productid, buyerid, dtime, review, rating])
         print(f'{num_reviews} product reviews generated')
 
 def gen_seller_reviews(num_reviews, sellers):
     with open('SellerReview1.csv', 'w') as f:
         writer = get_csv_writer(f)
-        print('Seller Reviews...', end=' ', flush=True)
         seen_combinations = set()
         
-        for _ in range(num_reviews):
+        for review_id in range(num_reviews):
             while True:
                 seller = fake.random_element(sellers)
                 sellerid = seller[0]
@@ -150,8 +149,43 @@ def gen_seller_reviews(num_reviews, sellers):
             dtime = fake.date_time_between(start_date='-1y', end_date='now')
             review = fake.paragraph(nb_sentences=2)
             rating = fake.random_int(min=1, max=5)
-            writer.writerow([buyerid, sellerid, dtime, rating, review])
+            writer.writerow([review_id, buyerid, sellerid, dtime, rating, review])
         print(f'{num_reviews} seller reviews generated')
+
+def gen_marked_helpful(num_marks):
+    # For product reviews
+    with open('MarkedProductReviewHelpful1.csv', 'w') as f:
+        writer = get_csv_writer(f)
+        print('Marked Product Reviews Helpful...', end=' ', flush=True)
+        seen_combinations = set()
+        
+        for _ in range(num_marks):
+            while True:
+                reviewid = fake.random_int(min=0, max=num_product_reviews-1)
+                user_id = fake.random_int(min=0, max=num_users-1)
+                if (reviewid, user_id) not in seen_combinations:
+                    seen_combinations.add((reviewid, user_id))
+                    break
+            
+            writer.writerow([reviewid, user_id])
+        print(f'{num_marks} marks generated')
+
+    # For seller reviews
+    with open('MarkedSellerReviewHelpful1.csv', 'w') as f:
+        writer = get_csv_writer(f)
+        print('Marked Seller Reviews Helpful...', end=' ', flush=True)
+        seen_combinations = set()
+        
+        for _ in range(num_marks):
+            while True:
+                reviewid = fake.random_int(min=0, max=num_seller_reviews-1)
+                user_id = fake.random_int(min=0, max=num_users-1)
+                if (reviewid, user_id) not in seen_combinations:
+                    seen_combinations.add((reviewid, user_id))
+                    break
+            
+            writer.writerow([reviewid, user_id])
+        print(f'{num_marks} marks generated')
 
 def main():
     # Generate all data
@@ -161,6 +195,7 @@ def main():
     purchase_combinations = gen_purchases(num_purchases, available_pids)
     gen_product_reviews(num_product_reviews, available_pids)
     gen_seller_reviews(num_seller_reviews, sellers)
+    gen_marked_helpful(num_marks)
 
 if __name__ == "__main__":
     main()

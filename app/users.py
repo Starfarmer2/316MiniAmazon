@@ -599,3 +599,36 @@ def delete_seller_review(seller_id):
     if return_to == 'product':
         return redirect(url_for('products.product_detail', product_id=product_id))
     return redirect(url_for('users.user_profile', user_id=seller_id))
+
+@bp.route('/toggle-seller-helpful', methods=['POST'])
+@login_required
+def toggle_seller_helpful():
+    try:
+        reviewid = request.form.get('reviewid')
+        seller_id = request.form.get('seller_id')
+        
+        # Check if already marked
+        marked = app.db.execute('''
+            SELECT 1 FROM MarkedSellerReviewHelpful 
+            WHERE reviewid = :reviewid AND user_id = :user_id
+        ''', reviewid=reviewid, user_id=current_user.userid)
+        
+        if marked:
+            app.db.execute('''
+                DELETE FROM MarkedSellerReviewHelpful
+                WHERE reviewid = :reviewid AND user_id = :user_id
+            ''', reviewid=reviewid, user_id=current_user.userid)
+            flash('Removed helpful mark')
+        else:
+            app.db.execute('''
+                INSERT INTO MarkedSellerReviewHelpful(reviewid, user_id)
+                VALUES(:reviewid, :user_id)
+            ''', reviewid=reviewid, user_id=current_user.userid)
+            flash('Marked as helpful')
+        
+        return redirect(url_for('users.user_profile', user_id=seller_id))
+        
+    except Exception as e:
+        print(f"Error in toggle_seller_helpful: {str(e)}")
+        flash('Error updating helpful status')
+        return redirect(url_for('index.index'))
