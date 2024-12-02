@@ -14,6 +14,17 @@
             position: relative;
             padding-top: 70px;
         }
+        .rating-display {
+            text-align: center;
+        }
+        .stars {
+            color: #ffc107;
+            font-size: 1.2em;
+            margin: 8px 0;
+        }
+        .review-count {
+            font-size: 0.9em;
+        }
         .header {
             padding: 15px 20px;
             background-color: #f8f9fa;
@@ -114,6 +125,7 @@
                     class="product-image"
                     onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/no-image-available.png') }}';">
                 </div>
+
                 <div class="col-md-6">
                     <div class="product-info">
                         <h1>{{ product.prodname }}</h1>
@@ -144,6 +156,60 @@
                     </div>
                 </div>
             </div>
+
+            <br>
+
+            <div class="review-stats mb-4">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Product Reviews</h5>
+                                {% if product_rating %}
+                                    <div class="rating-display">
+                                        <span class="h4">{{ product_rating }}</span>
+                                        <span class="text-muted">out of 5</span>
+                                        <div class="stars">
+                                            {% for _ in range(product_rating|int) %}★{% endfor %}
+                                            {% if (product_rating % 1) >= 0.5 %}★{% endif %}
+                                            {% for _ in range(5 - product_rating|round|int) %}☆{% endfor %}
+                                        </div>
+                                        <div class="review-count text-muted">
+                                            Based on {{ product_review_count }} product review{% if product_review_count != 1 %}s{% endif %}
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <p class="text-center">No reviews yet</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Seller Reviews</h5>
+                                {% if seller_rating %}
+                                    <div class="rating-display">
+                                        <span class="h4">{{ seller_rating }}</span>
+                                        <span class="text-muted">out of 5</span>
+                                        <div class="stars">
+                                            {% for _ in range(seller_rating|int) %}★{% endfor %}
+                                            {% if (seller_rating % 1) >= 0.5 %}★{% endif %}
+                                            {% for _ in range(5 - seller_rating|round|int) %}☆{% endfor %}
+                                        </div>
+                                        <div class="review-count text-muted">
+                                            Based on {{ seller_review_count }} seller review{% if seller_review_count != 1 %}s{% endif %}
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <p class="text-center">No reviews yet</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
 
             {% if current_user.is_authenticated %}
                 <div class="review-form-section mt-5">
@@ -194,7 +260,7 @@
                     {% if has_purchased %}
                         <div class="review-form-section mb-4">
                             {% if has_purchased_from_seller %}
-                                <form action="{{ url_for('users.add_seller_review', seller_id=seller.userid) }}" method="POST" class="review-form">
+                                <form action="{{ url_for('users.add_seller_review', seller_id=seller.userid, return_to='product', product_id=product.productid) }}" method="POST" class="review-form">
                                     <div class="form-group">
                                         <label for="seller_rating">Rating:</label>
                                         <select name="rating" id="seller_rating" class="form-control" required>
@@ -218,7 +284,7 @@
                                 </form>
                                 
                                 {% if seller_review %}
-                                    <form action="{{ url_for('users.delete_seller_review', seller_id=seller.userid) }}" 
+                                    <form action="{{ url_for('users.delete_seller_review', seller_id=seller.userid, return_to='product', product_id=product.productid) }}" 
                                           method="POST" 
                                           class="delete-form"
                                           style="display: inline-block; margin-top: 10px;"

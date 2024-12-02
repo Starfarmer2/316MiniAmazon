@@ -154,12 +154,35 @@ def product_detail(product_id):
             ''', userid=current_user.userid, productid=product_id)
             user_review = user_review[0] if user_review else None
 
+    # Get product review stats
+    product_stats = app.db.execute('''
+        SELECT AVG(rating) as avg_rating, COUNT(*) as review_count
+        FROM ProductReviews
+        WHERE productid = :productid
+    ''', productid=product_id)
+    
+    # Get seller review stats
+    seller_stats = app.db.execute('''
+        SELECT AVG(rating) as avg_rating, COUNT(*) as review_count
+        FROM SellerReviews
+        WHERE sellerid = :sellerid
+    ''', sellerid=seller.userid)
+    
+    product_rating = round(product_stats[0][0], 1) if product_stats[0][0] else None
+    product_review_count = product_stats[0][1]
+    seller_rating = round(seller_stats[0][0], 1) if seller_stats[0][0] else None
+    seller_review_count = seller_stats[0][1]
+
     return render_template('product_detail.html', 
                          product=product, 
                          seller=seller,
                          seller_review=seller_review, 
                          has_purchased_from_seller=has_purchased_from_seller,
                          reviews=reviews,
+                         product_rating=product_rating,
+                         product_review_count=product_review_count,
+                         seller_rating=seller_rating,
+                         seller_review_count=seller_review_count,
                          all_seller_reviews=formatted_reviews,
                          has_purchased=has_purchased,
                          user_review=user_review)
@@ -257,8 +280,8 @@ def add_review(product_id):
         else:
             # Create new review
             app.db.execute('''
-                INSERT INTO ProductReviews(productid, buyerid, dtime, review, rating, helpedcount, helped_by)
-                VALUES(:productid, :userid, :dtime, :review, :rating, 0, ARRAY[]::integer[])
+                INSERT INTO ProductReviews(productid, buyerid, dtime, review, rating, helpedcount)
+                VALUES(:productid, :userid, :dtime, :review, :rating, 0)
             ''',
                 productid=product_id,
                 userid=current_user.userid,

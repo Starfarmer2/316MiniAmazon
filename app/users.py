@@ -436,6 +436,16 @@ def user_profile(user_id):
                 'rating': review_check[0][0],
                 'review': review_check[0][1]
             }
+
+    # Get seller review stats
+    seller_stats = app.db.execute('''
+        SELECT AVG(rating) as avg_rating, COUNT(*) as review_count
+        FROM SellerReviews
+        WHERE sellerid = :sellerid
+    ''', sellerid=user_id)
+    
+    seller_rating = round(seller_stats[0][0], 1) if seller_stats[0][0] else None
+    seller_review_count = seller_stats[0][1]
     
     return render_template('user_profile.html',
                          profile_user=user,
@@ -445,75 +455,10 @@ def user_profile(user_id):
                          seller_products=seller_products,
                          pagination=pagination,
                          total=total,
-                          existing_review=existing_review,
+                         existing_review=existing_review,
+                         seller_rating=seller_rating,
+                         seller_review_count=seller_review_count,
                          per_page=per_page)
-
-@bp.route('/seller/<int:seller_id>/review', methods=['POST'])
-@login_required
-def add_seller_review(seller_id):
-    print(f"Received review submission for seller {seller_id}")  # Debug print
-    print(f"Form data: {request.form}")  # Debug print
-    
-    if not request.form.get('rating') or not request.form.get('review'):
-        flash('Both rating and review are required.')
-        return redirect(url_for('users.user_profile', user_id=seller_id))
-    
-    # Check if user has purchased from this seller
-    purchase_check = app.db.execute('''
-        SELECT COUNT(*) 
-        FROM Purchases p
-        JOIN Products prod ON p.productid = prod.productid
-        WHERE p.userid = :userid AND prod.sellerid = :sellerid
-    ''', userid=current_user.userid, sellerid=seller_id)
-    
-    print(f"Purchase check result: {purchase_check}")  # Debug print
-    
-    if not purchase_check or purchase_check[0][0] == 0:
-        flash('You can only review sellers you have purchased from.')
-        return redirect(url_for('users.user_profile', user_id=seller_id))
-    
-    try:
-        # Check for existing review
-        existing_review = app.db.execute('''
-            SELECT COUNT(*) 
-            FROM SellerReviews 
-            WHERE buyerid = :userid AND sellerid = :sellerid
-        ''', userid=current_user.userid, sellerid=seller_id)
-        
-        current_time = datetime.now()
-        
-        if existing_review and existing_review[0][0] > 0:
-            # Update existing review
-            app.db.execute('''
-                UPDATE SellerReviews 
-                SET rating = :rating, review = :review, dtime = :dtime
-                WHERE buyerid = :userid AND sellerid = :sellerid
-            ''', 
-                rating=int(request.form['rating']),
-                review=request.form['review'],
-                dtime=current_time,
-                userid=current_user.userid,
-                sellerid=seller_id)
-            flash('Your seller review has been updated.')
-        else:
-            # Create new review
-            print("Creating new review")  # Debug print
-            app.db.execute('''
-                INSERT INTO SellerReviews(buyerid, sellerid, dtime, rating, review)
-                VALUES(:buyerid, :sellerid, :dtime, :rating, :review)
-            ''',
-                buyerid=current_user.userid,
-                sellerid=seller_id,
-                dtime=current_time,
-                rating=int(request.form['rating']),
-                review=request.form['review'])
-            flash('Your seller review has been added successfully.')
-            
-    except Exception as e:
-        print(f"Error saving seller review: {str(e)}")  # Debug print
-        flash(f'Error saving seller review: {str(e)}')
-    
-    return redirect(url_for('users.user_profile', user_id=seller_id))
 
 @bp.route('/api/seller/<int:sellerid>/products', methods=['GET'])
 @login_required
@@ -549,10 +494,92 @@ def delete_product_review(product_id):
     
     return redirect(url_for('products.product_detail', product_id=product_id))
 
+@bp.route('/seller/<int:seller_id>/review', methods=['POST'])
+@login_required
+def add_seller_review(seller_id):
+    print(f"Received review submission for seller {seller_id}")
+    print(f"Form data: {request.form}")
+    
+    # Get the return_to parameter and product_id if they exist
+    return_to = request.args.get('return_to')
+    product_id = request.args.get('product_id')
+    
+    if not request.form.get('rating') or not request.form.get('review'):
+        flash('Both rating and review are required.')
+        if return_to == 'product':
+            return redirect(url_for('products.product_detail', product_id=product_id))
+        return redirect(url_for('users.user_profile', user_id=seller_id))
+    
+    # Check if user has purchased from this seller
+    purchase_check = app.db.execute('''
+        SELECT COUNT(*) 
+        FROM Purchases p
+        JOIN Products prod ON p.productid = prod.productid
+        WHERE p.userid = :userid AND prod.sellerid = :sellerid
+    ''', userid=current_user.userid, sellerid=seller_id)
+    
+    print(f"Purchase check result: {purchase_check}")
+    
+    if not purchase_check or purchase_check[0][0] == 0:
+        flash('You can only review sellers you have purchased from.')
+        if return_to == 'product':
+            return redirect(url_for('products.product_detail', product_id=product_id))
+        return redirect(url_for('users.user_profile', user_id=seller_id))
+    
+    try:
+        # Check for existing review
+        existing_review = app.db.execute('''
+            SELECT COUNT(*) 
+            FROM SellerReviews 
+            WHERE buyerid = :userid AND sellerid = :sellerid
+        ''', userid=current_user.userid, sellerid=seller_id)
+        
+        current_time = datetime.now()
+        
+        if existing_review and existing_review[0][0] > 0:
+            # Update existing review
+            app.db.execute('''
+                UPDATE SellerReviews 
+                SET rating = :rating, review = :review, dtime = :dtime
+                WHERE buyerid = :userid AND sellerid = :sellerid
+            ''', 
+                rating=int(request.form['rating']),
+                review=request.form['review'],
+                dtime=current_time,
+                userid=current_user.userid,
+                sellerid=seller_id)
+            flash('Your seller review has been updated.')
+        else:
+            # Create new review
+            print("Creating new review")
+            app.db.execute('''
+                INSERT INTO SellerReviews(buyerid, sellerid, dtime, rating, review)
+                VALUES(:buyerid, :sellerid, :dtime, :rating, :review)
+            ''',
+                buyerid=current_user.userid,
+                sellerid=seller_id,
+                dtime=current_time,
+                rating=int(request.form['rating']),
+                review=request.form['review'])
+            flash('Your seller review has been added successfully.')
+            
+    except Exception as e:
+        print(f"Error saving seller review: {str(e)}")
+        flash(f'Error saving seller review: {str(e)}')
+    
+    if return_to == 'product':
+        return redirect(url_for('products.product_detail', product_id=product_id))
+    return redirect(url_for('users.user_profile', user_id=seller_id))
+
 @bp.route('/delete_seller_review/<int:seller_id>', methods=['POST'])
 @login_required
 def delete_seller_review(seller_id):
-    print(f"Delete seller review route accessed for seller_id: {seller_id}")  # Debug print
+    print(f"Delete seller review route accessed for seller_id: {seller_id}")
+    
+    # Get the return_to parameter and product_id if they exist
+    return_to = request.args.get('return_to')
+    product_id = request.args.get('product_id')
+    
     try:
         result = app.db.execute('''
             DELETE FROM SellerReviews 
@@ -562,11 +589,13 @@ def delete_seller_review(seller_id):
         sellerid=seller_id,
         buyerid=current_user.userid)
         
-        print(f"Delete result: {result}")  # Debug print
+        print(f"Delete result: {result}")
         flash('Review deleted successfully')
         
     except Exception as e:
-        print(f"Error in delete_seller_review: {str(e)}")  # Debug print
+        print(f"Error in delete_seller_review: {str(e)}")
         flash('Error deleting review')
     
+    if return_to == 'product':
+        return redirect(url_for('products.product_detail', product_id=product_id))
     return redirect(url_for('users.user_profile', user_id=seller_id))

@@ -1,14 +1,13 @@
 from flask import current_app as app
 
 class ProductReview:
-    def __init__(self, productid, buyerid, dtime, review, rating, helpedcount=0, helped_by=None):
+    def __init__(self, productid, buyerid, dtime, review, rating, helpedcount=0):
         self.productid = productid
         self.buyerid = buyerid
         self.dtime = dtime
         self.review = review
         self.rating = rating
         self.helpedcount = helpedcount
-        self.helped_by = helped_by or []
 
     @staticmethod
     def get_by_product(productid):
@@ -42,13 +41,26 @@ class ProductReview:
     @staticmethod
     def mark_helpful(productid, buyerid, voter_id):
         try:
+            # First check if this user has already marked this product as helpful
+            exists = app.db.execute('''
+            SELECT 1 FROM Helped
+            WHERE productid = :productid AND userid = :voter_id
+            ''', productid=productid, voter_id=voter_id)
+            
+            if exists:
+                return None  # User already marked this as helpful
+                
+            # Add to Helped table
+            app.db.execute('''
+            INSERT INTO Helped(productid, userid)
+            VALUES(:productid, :voter_id)
+            ''', productid=productid, voter_id=voter_id)
+            
+            # Update helpedcount
             rows = app.db.execute('''
             UPDATE ProductReviews
-            SET helpedcount = helpedcount + 1,
-                helped_by = array_append(helped_by, :voter_id)
-            WHERE productid = :productid 
-            AND buyerid = :buyerid
-            AND NOT (:voter_id = ANY(helped_by))
+            SET helpedcount = helpedcount + 1
+            WHERE productid = :productid AND buyerid = :buyerid
             AND buyerid != :voter_id
             RETURNING helpedcount
             ''', productid=productid, buyerid=buyerid, voter_id=voter_id)
@@ -61,15 +73,20 @@ class ProductReview:
     @staticmethod
     def unmark_helpful(productid, buyerid, voter_id):
         try:
+            # Remove from Helped table
+            app.db.execute('''
+            DELETE FROM Helped
+            WHERE productid = :productid AND userid = :voter_id
+            ''', productid=productid, voter_id=voter_id)
+            
+            # Update helpedcount
             rows = app.db.execute('''
             UPDATE ProductReviews
-            SET helpedcount = helpedcount - 1,
-                helped_by = array_remove(helped_by, :voter_id)
-            WHERE productid = :productid 
-            AND buyerid = :buyerid
-            AND :voter_id = ANY(helped_by)
+            SET helpedcount = helpedcount - 1
+            WHERE productid = :productid AND buyerid = :buyerid
+            AND helpedcount > 0
             RETURNING helpedcount
-            ''', productid=productid, buyerid=buyerid, voter_id=voter_id)
+            ''', productid=productid, buyerid=buyerid)
             
             return rows[0][0] if rows else None
         except Exception as e:
@@ -79,11 +96,10 @@ class ProductReview:
     @staticmethod
     def is_marked_helpful(productid, buyerid, voter_id):
         rows = app.db.execute('''
-        SELECT :voter_id = ANY(helped_by)
-        FROM ProductReviews
-        WHERE productid = :productid AND buyerid = :buyerid
-        ''', productid=productid, buyerid=buyerid, voter_id=voter_id)
-        return rows[0][0] if rows else False
+        SELECT 1 FROM Helped
+        WHERE productid = :productid AND userid = :voter_id
+        ''', productid=productid, voter_id=voter_id)
+        return bool(rows)
 
     @staticmethod
     def get_most_recent_by_user(user_id):
@@ -106,4 +122,3 @@ class ProductReview:
         LIMIT :limit
         ''', user_id=user_id, limit=limit)
         return [ProductReview(*row) for row in rows]
-
