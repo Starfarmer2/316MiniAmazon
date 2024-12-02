@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app as app
 from flask_login import current_user, login_required
 from .models.cart import Cart
 from .models.purchase import Purchase
