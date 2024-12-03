@@ -408,3 +408,40 @@ def toggle_helpful():
         print(f"Error in toggle_helpful: {str(e)}")
         flash('Error updating helpful status')
         return redirect(url_for('index.index'))
+
+
+
+@bp.route('/analytics', methods=['GET'])
+@login_required
+def seller_analytics():
+    """
+    Fetch analytics data for the current seller.
+    """
+    #total purchases for each product
+    total_purchases_query = """
+        SELECT p.productid, p.prodname, COALESCE(SUM(pr.quantity), 0) AS total_purchases
+        FROM Products p
+        LEFT JOIN Purchases pr ON p.productid = pr.productid
+        WHERE p.sellerid = :seller_id
+        GROUP BY p.productid, p.prodname
+        ORDER BY total_purchases DESC
+    """
+    total_purchases = app.db.execute(total_purchases_query, seller_id=current_user.userid)
+
+    #top 5 most purchased products for visualization
+    top_5_query = """
+        SELECT p.prodname, COALESCE(SUM(pr.quantity), 0) AS total_purchases
+        FROM Products p
+        LEFT JOIN Purchases pr ON p.productid = pr.productid
+        WHERE p.sellerid = :seller_id
+        GROUP BY p.prodname
+        ORDER BY total_purchases DESC
+        LIMIT 5
+    """
+    top_5_products = app.db.execute(top_5_query, seller_id=current_user.userid)
+
+    analytics_data = {
+        "total_purchases": total_purchases,
+        "top_5_products": [{"prodname": row.prodname, "total_purchases": row.total_purchases} for row in top_5_products]
+    }
+    return analytics_data

@@ -179,6 +179,26 @@
         </div>
 
 
+
+        <div class="analytics-section mt-5">
+            <h2>Analytics</h2>
+            
+            <!-- Total Purchases for Each Product -->
+            <div class="total-purchases">
+                <h3>Total Purchases by Product</h3>
+                <ul id="total-purchases-list">
+                    <!-- Populated via JavaScript -->
+                </ul>
+            </div>
+            
+            <!-- Top 5 Most Purchased Products Chart -->
+            <div class="top-products-chart mt-4">
+                <h3>Top 5 Most Purchased Products</h3>
+                <canvas id="topProductsChart"></canvas>
+            </div>
+        </div>
+        
+
     </div>
 <!-- Edit Product Modal -->
 <div class="modal fade" id="editProductModal" tabindex="-1" role="dialog" aria-labelledby="editProductModalLabel" aria-hidden="true">
@@ -287,6 +307,53 @@
 
         // Set the form action URL dynamically to include the product ID
         modal.find('form').attr('action', '/product/' + productid + '/edit');
+    });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Fetch analytics data
+        fetch('{{ url_for("products.seller_analytics") }}')
+            .then(response => response.json())
+            .then(data => {
+                const totalPurchasesList = document.getElementById('total-purchases-list');
+                const topProductsChartCanvas = document.getElementById('topProductsChart').getContext('2d');
+                
+                // Populate total purchases list
+                data.total_purchases.forEach(product => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `${product.prodname}: ${product.total_purchases} units sold`;
+                    totalPurchasesList.appendChild(listItem);
+                });
+
+                // Prepare data for the chart
+                const topProducts = data.top_5_products.map(product => product.prodname);
+                const topPurchases = data.top_5_products.map(product => product.total_purchases);
+
+                // Create the bar chart
+                new Chart(topProductsChartCanvas, {
+                    type: 'bar',
+                    data: {
+                        labels: topProducts,
+                        datasets: [{
+                            label: 'Total Purchases',
+                            data: topPurchases,
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            })
+            .catch(error => console.error('Error fetching analytics:', error));
     });
 </script>
 
