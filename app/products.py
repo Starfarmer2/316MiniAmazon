@@ -53,26 +53,47 @@ def product_detail(product_id):
     if seller is None:
         abort(404)
     
-    # Modify your all_seller_reviews query to include helpful counts:
     all_seller_reviews = app.db.execute('''
-        SELECT sr.reviewid, sr.rating, sr.review, sr.dtime,
-               u.firstname, u.lastname,
-               sr.buyerid,
-               COUNT(DISTINCT msh.user_id) as helpful_count,
-               EXISTS(
-                   SELECT 1 FROM MarkedSellerReviewHelpful msh2 
-                   WHERE msh2.reviewid = sr.reviewid 
-                   AND msh2.user_id = :current_user_id
-               ) as marked_helpful_by_user
-        FROM SellerReviews sr
-        JOIN Users u ON sr.buyerid = u.userid
-        LEFT JOIN MarkedSellerReviewHelpful msh ON sr.reviewid = msh.reviewid
-        WHERE sr.sellerid = :sellerid
-        GROUP BY sr.reviewid, sr.rating, sr.review, sr.dtime,
-                 u.firstname, u.lastname, sr.buyerid
-        ORDER BY helpful_count DESC, sr.dtime DESC
-    ''', sellerid=seller.userid, 
-         current_user_id=current_user.userid if current_user.is_authenticated else None)
+        WITH TopHelpful AS (
+            SELECT sr.reviewid, sr.rating, sr.review, sr.dtime,
+                   u.firstname, u.lastname, sr.buyerid,
+                   COUNT(DISTINCT msh.user_id) as helpful_count,
+                   EXISTS(
+                       SELECT 1 FROM MarkedSellerReviewHelpful msh2 
+                       WHERE msh2.reviewid = sr.reviewid 
+                       AND msh2.user_id = :current_user_id
+                   ) as marked_helpful_by_user
+            FROM SellerReviews sr
+            JOIN Users u ON sr.buyerid = u.userid
+            LEFT JOIN MarkedSellerReviewHelpful msh ON sr.reviewid = msh.reviewid
+            WHERE sr.sellerid = :sellerid
+            GROUP BY sr.reviewid, sr.rating, sr.review, sr.dtime,
+                     u.firstname, u.lastname, sr.buyerid
+            ORDER BY COUNT(DISTINCT msh.user_id) DESC
+            LIMIT 3
+        ),
+        RemainingReviews AS (
+            SELECT sr.reviewid, sr.rating, sr.review, sr.dtime,
+                   u.firstname, u.lastname, sr.buyerid,
+                   COUNT(DISTINCT msh.user_id) as helpful_count,
+                   EXISTS(
+                       SELECT 1 FROM MarkedSellerReviewHelpful msh2 
+                       WHERE msh2.reviewid = sr.reviewid 
+                       AND msh2.user_id = :current_user_id
+                   ) as marked_helpful_by_user
+            FROM SellerReviews sr
+            JOIN Users u ON sr.buyerid = u.userid
+            LEFT JOIN MarkedSellerReviewHelpful msh ON sr.reviewid = msh.reviewid
+            WHERE sr.sellerid = :sellerid
+            AND sr.reviewid NOT IN (SELECT reviewid FROM TopHelpful)
+            GROUP BY sr.reviewid, sr.rating, sr.review, sr.dtime,
+                     u.firstname, u.lastname, sr.buyerid
+            ORDER BY sr.dtime DESC
+        )
+        SELECT * FROM TopHelpful
+        UNION ALL
+        SELECT * FROM RemainingReviews
+    ''', sellerid=seller.userid, current_user_id=current_user.userid if current_user.is_authenticated else None)
 
     # Update how you format the reviews
     formatted_reviews = []
@@ -113,21 +134,45 @@ def product_detail(product_id):
                 }
 
     reviews = app.db.execute('''
-        SELECT pr.reviewid, pr.productid, pr.buyerid, pr.dtime, pr.review, pr.rating,
-               u.firstname, u.lastname,
-               COUNT(DISTINCT mph.user_id) as helpful_count,
-               EXISTS(
-                   SELECT 1 FROM MarkedProductReviewHelpful mph2 
-                   WHERE mph2.reviewid = pr.reviewid 
-                   AND mph2.user_id = :current_user_id
-               ) as marked_helpful_by_user
-        FROM ProductReviews pr
-        JOIN Users u ON pr.buyerid = u.userid
-        LEFT JOIN MarkedProductReviewHelpful mph ON pr.reviewid = mph.reviewid
-        WHERE pr.productid = :productid
-        GROUP BY pr.reviewid, pr.productid, pr.buyerid, pr.dtime, pr.review, pr.rating,
-                 u.firstname, u.lastname
-        ORDER BY helpful_count DESC, pr.dtime DESC
+        WITH TopHelpful AS (
+            SELECT pr.reviewid, pr.productid, pr.buyerid, pr.dtime, pr.review, pr.rating,
+                   u.firstname, u.lastname,
+                   COUNT(DISTINCT mph.user_id) as helpful_count,
+                   EXISTS(
+                       SELECT 1 FROM MarkedProductReviewHelpful mph2 
+                       WHERE mph2.reviewid = pr.reviewid 
+                       AND mph2.user_id = :current_user_id
+                   ) as marked_helpful_by_user
+            FROM ProductReviews pr
+            JOIN Users u ON pr.buyerid = u.userid
+            LEFT JOIN MarkedProductReviewHelpful mph ON pr.reviewid = mph.reviewid
+            WHERE pr.productid = :productid
+            GROUP BY pr.reviewid, pr.productid, pr.buyerid, pr.dtime, pr.review, pr.rating,
+                     u.firstname, u.lastname
+            ORDER BY helpful_count DESC
+            LIMIT 3
+        ),
+        RemainingReviews AS (
+            SELECT pr.reviewid, pr.productid, pr.buyerid, pr.dtime, pr.review, pr.rating,
+                   u.firstname, u.lastname,
+                   COUNT(DISTINCT mph.user_id) as helpful_count,
+                   EXISTS(
+                       SELECT 1 FROM MarkedProductReviewHelpful mph2 
+                       WHERE mph2.reviewid = pr.reviewid 
+                       AND mph2.user_id = :current_user_id
+                   ) as marked_helpful_by_user
+            FROM ProductReviews pr
+            JOIN Users u ON pr.buyerid = u.userid
+            LEFT JOIN MarkedProductReviewHelpful mph ON pr.reviewid = mph.reviewid
+            WHERE pr.productid = :productid
+            AND pr.reviewid NOT IN (SELECT reviewid FROM TopHelpful)
+            GROUP BY pr.reviewid, pr.productid, pr.buyerid, pr.dtime, pr.review, pr.rating,
+                     u.firstname, u.lastname
+            ORDER BY pr.dtime DESC
+        )
+        SELECT * FROM TopHelpful
+        UNION ALL
+        SELECT * FROM RemainingReviews
     ''', productid=product_id, current_user_id=current_user.userid if current_user.is_authenticated else None)
     
     has_purchased = False
