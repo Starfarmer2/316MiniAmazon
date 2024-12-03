@@ -93,18 +93,18 @@
                 </div>
             </div>
         </form>
-        
+
         <!-- Orders Section -->
         <div class="order-section">
             {% if orders %}
                 {% for order in orders %}
                     <div class="order-item">
                         <h4>Order Date: {{ order.dtime.strftime('%Y-%m-%d %H:%M:%S') }}</h4>
+                        <p><strong>Product:{{ order.prodname }}</strong> </p>
+                        <p><strong>Product ID:{{ order.productid }}</strong> </p>
+                        <p><strong>Quantity:</strong> {{ order.quantity }}</p>
                         <p class="buyer-info"><strong>Buyer:</strong> {{ order.buyer_name }}</p>
                         <p><strong>Buyer Address:</strong> {{ order.address }}</p>
-                        <p><strong>Total Items:</strong> {{ order.total_items }}</p>
-                        <p><strong>Product:</strong> {{ order.prodname }}</p>
-                        <p><strong>Quantity:</strong> {{ order.quantity }}</p>
                         <p><strong>Status:</strong> {{ "Fulfilled" if order.status else "Pending" }}</p>
                         <form action="{{ url_for('orders.mark_fulfilled', product_id=order.productid, buyer_id=order.buyer_id, dtime=order.dtime) }}" method="POST">
                             {% if not order.status %}
