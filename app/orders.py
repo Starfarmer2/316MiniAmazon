@@ -121,27 +121,28 @@ def order_fulfillment():
         ORDER BY p.dtime DESC
     """
 
-    # Execute the query
+    # Execute the query and map results
     try:
-        orders = app.db.execute(base_query, **params)
+        rows = app.db.execute(base_query, **params)
     except Exception as e:
         print(f"Error fetching orders: {e}")
-        orders = []
+        rows = []
 
-    # Transform data
+    # Transform query results into dictionaries
     order_list = []
-    for order in orders:
+    for row in rows:
         order_list.append({
-            'buyer_id': order.get('buyer_id'),
-            'dtime': order.get('dtime'),
-            'buyer_name': order.get('buyer_name', 'Unknown'),
-            'address': order.get('address', 'Unknown'),
-            'total_items': order.get('total_items', 0),  # Count of products from this seller
-            'overall_status': order.get('overall_status', False),  # True if all products fulfilled
-            'products': order.get('products', [])  # List of product details
+            'buyer_id': row[0],
+            'dtime': row[1],
+            'buyer_name': row[2],
+            'address': row[3],
+            'total_items': row[4],
+            'overall_status': row[5],
+            'products': row[6],  # This will be the JSON-aggregated product list
         })
 
     return render_template('order_fulfillment.html', orders=order_list)
+
 
 
 @bp.route('/order_fulfillment/mark_fulfilled/<int:product_id>/<int:buyer_id>/<string:dtime>', methods=['POST'])
