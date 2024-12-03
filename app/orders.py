@@ -78,16 +78,17 @@ def order_confirmation(purchase_time):
 def order_fulfillment():
     """
     Render the Order Fulfillment page for sellers.
-    Group orders by buyer and order time while showing only the seller's products.
+    Group orders by buyer and order time, showing only the seller's products.
     """
     search_query = request.args.get('search', '').strip()
     status_filter = request.args.get('status', '').lower()  # 'true', 'false', or ''
-    
-    # SQL to fetch grouped orders related to the current seller
+
+    # SQL to fetch grouped orders
     base_query = """
         SELECT p.userid AS buyer_id, p.dtime,
                u.firstname || ' ' || u.lastname AS buyer_name, u.address,
-               SUM(p.quantity) AS total_items, BOOL_AND(p.status) AS overall_status,
+               COUNT(p.productid) AS total_items,
+               BOOL_AND(p.status) AS overall_status,
                json_agg(json_build_object(
                    'productid', p.productid,
                    'prodname', pr.prodname,
@@ -100,7 +101,7 @@ def order_fulfillment():
         WHERE pr.sellerid = :seller_id
     """
     params = {'seller_id': current_user.userid}
-    
+
     # Add search and filter conditions
     if search_query:
         base_query += """
@@ -119,23 +120,27 @@ def order_fulfillment():
         GROUP BY p.userid, p.dtime, u.firstname, u.lastname, u.address
         ORDER BY p.dtime DESC
     """
-    
-    # Execute the query
-    orders = app.db.execute(base_query, **params)
 
-    # Transform the result for rendering
+    # Execute the query
+    try:
+        orders = app.db.execute(base_query, **params)
+    except Exception as e:
+        print(f"Error fetching orders: {e}")
+        orders = []
+
+    # Transform data
     order_list = []
     for order in orders:
         order_list.append({
-            'buyer_id': order.buyer_id,
-            'dtime': order.dtime,
-            'buyer_name': order.buyer_name,
-            'address': order.address,
-            'total_items': order.total_items,
-            'overall_status': order.overall_status,
-            'products': order.products  # List of product details
+            'buyer_id': order.get('buyer_id'),
+            'dtime': order.get('dtime'),
+            'buyer_name': order.get('buyer_name', 'Unknown'),
+            'address': order.get('address', 'Unknown'),
+            'total_items': order.get('total_items', 0),  # Count of products from this seller
+            'overall_status': order.get('overall_status', False),  # True if all products fulfilled
+            'products': order.get('products', [])  # List of product details
         })
-    
+
     return render_template('order_fulfillment.html', orders=order_list)
 
 
