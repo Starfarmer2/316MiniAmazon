@@ -322,7 +322,7 @@
                 // Populate total purchases list
                 data.total_purchases.forEach(product => {
                     const listItem = document.createElement('li');
-                    listItem.textContent = `${product.prodname}: ${product.total_purchases} units sold`;
+                    listItem.textContent = `${product.prodname} (ID: ${product.productid}): ${product.total_purchases} units sold`;
                     totalPurchasesList.appendChild(listItem);
                 });
 
