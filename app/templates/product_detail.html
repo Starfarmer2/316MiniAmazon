@@ -147,13 +147,17 @@
                             <a href="{{ url_for('users.login') }}" class="btn btn-primary">Log in to Purchase</a>
                         {% endif %}
 
-                        <!-- Add Seller Information -->
                         <div class="seller-info">
                             <h3>Seller Information</h3>
                             <p><strong>Seller ID:</strong> {{ seller.userid }}</p>
                             <p><strong>Seller Name:</strong> {{ seller.firstname }} {{ seller.lastname }}</p>
-                            <a href="{{ url_for('users.user_profile', user_id=seller.userid) }}" class="btn btn-info">View Seller Profile</a>
+                            {% if current_user.is_authenticated %}
+                                <a href="{{ url_for('users.user_profile', user_id=seller.userid) }}" class="btn btn-info">View Seller Profile</a>
+                            {% else %}
+                                <a href="{{ url_for('users.login') }}" class="btn btn-info">Log in to View Seller Profile</a>
+                            {% endif %}
                         </div>
+
                     </div>
                 </div>
             </div>
@@ -342,22 +346,22 @@
                                         {{ review.firstname }} {{ review.lastname }}
                                     </a></small>
                                 </div>
-                                <div class="review-footer">
-                                    <span>{{ review.helpful_count|default(0) }} found this helpful</span>
-                                    {% if current_user.is_authenticated and current_user.userid != review.buyerid %}
-                                        <form action="{{ url_for('products.toggle_helpful') }}" method="POST">
-                                            <input type="hidden" name="reviewid" value="{{ review.reviewid }}">
-                                            <input type="hidden" name="product_id" value="{{ product.productid }}">
-                                            <button type="submit" class="btn btn-sm btn-outline-secondary">
-                                                {% if review.marked_helpful_by_user %}
-                                                    Remove Helpful
-                                                {% else %}
-                                                    Mark Helpful
-                                                {% endif %}
-                                            </button>
-                                        </form>
-                                    {% endif %}
-                                </div>
+<div class="review-footer">
+    <span>{{ review.helpful_count|default(0) }} found this helpful</span>
+    {% if current_user.is_authenticated and current_user.userid != review.buyerid %}
+        <form action="{{ url_for('products.toggle_helpful') }}" method="POST">
+            <input type="hidden" name="reviewid" value="{{ review.reviewid }}">
+            <input type="hidden" name="product_id" value="{{ product.productid }}">
+            <button type="submit" class="btn btn-sm btn-outline-secondary">
+                {% if review.marked_helpful_by_user %}
+                    Remove Helpful
+                {% else %}
+                    Mark Helpful
+                {% endif %}
+            </button>
+        </form>
+    {% endif %}
+</div>
                             </div>
                         {% endfor %}
                     {% else %}
@@ -389,22 +393,24 @@
                                         {{ review.reviewer_name }}</a>
                                     </small>
                                 </div>
-                                <div class="review-footer"> 
-                                    <span>{{ review.helpful_count|default(0) }} found this helpful TODO</span>
-                                    {% if current_user.is_authenticated and current_user.userid != review.buyerid %}
-                                        <form action="{{ url_for('products.toggle_helpful') }}" method="POST">
-                                            <input type="hidden" name="reviewid" value="{{ review.reviewid }}">
-                                            <input type="hidden" name="product_id" value="{{ product.productid }}">
-                                            <button type="submit" class="btn btn-sm btn-outline-secondary">
-                                                {% if review.marked_helpful_by_user %}
-                                                    Remove Helpful
-                                                {% else %}
-                                                    Mark Helpful
-                                                {% endif %}
-                                            </button>
-                                        </form>
-                                    {% endif %}
-                                </div>
+    <div class="review-footer">
+        <span>{{ review.helpful_count|default(0) }} found this helpful</span>
+        {% if current_user.is_authenticated and current_user.userid != review.buyerid %}
+            <form action="{{ url_for('users.toggle_seller_helpful') }}" method="POST">
+                <input type="hidden" name="reviewid" value="{{ review.reviewid }}">
+                <input type="hidden" name="seller_id" value="{{ seller.userid }}">
+                <input type="hidden" name="return_to" value="product">
+                <input type="hidden" name="product_id" value="{{ product.productid }}">
+                <button type="submit" class="btn btn-sm btn-outline-secondary">
+                    {% if review.marked_helpful_by_user %}
+                        Remove Helpful
+                    {% else %}
+                        Mark Helpful
+                    {% endif %}
+                </button>
+            </form>
+        {% endif %}
+    </div>
                             </div>
                         {% endfor %}
                     {% else %}

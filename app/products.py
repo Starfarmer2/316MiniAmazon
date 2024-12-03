@@ -53,24 +53,39 @@ def product_detail(product_id):
     if seller is None:
         abort(404)
     
+    # Modify your all_seller_reviews query to include helpful counts:
     all_seller_reviews = app.db.execute('''
-        SELECT sr.rating, sr.review, sr.dtime,
+        SELECT sr.reviewid, sr.rating, sr.review, sr.dtime,
                u.firstname, u.lastname,
-               sr.buyerid
+               sr.buyerid,
+               COUNT(DISTINCT msh.user_id) as helpful_count,
+               EXISTS(
+                   SELECT 1 FROM MarkedSellerReviewHelpful msh2 
+                   WHERE msh2.reviewid = sr.reviewid 
+                   AND msh2.user_id = :current_user_id
+               ) as marked_helpful_by_user
         FROM SellerReviews sr
         JOIN Users u ON sr.buyerid = u.userid
+        LEFT JOIN MarkedSellerReviewHelpful msh ON sr.reviewid = msh.reviewid
         WHERE sr.sellerid = :sellerid
-        ORDER BY sr.dtime DESC
-    ''', sellerid=seller.userid)
+        GROUP BY sr.reviewid, sr.rating, sr.review, sr.dtime,
+                 u.firstname, u.lastname, sr.buyerid
+        ORDER BY helpful_count DESC, sr.dtime DESC
+    ''', sellerid=seller.userid, 
+         current_user_id=current_user.userid if current_user.is_authenticated else None)
 
+    # Update how you format the reviews
     formatted_reviews = []
     for review in all_seller_reviews:
         formatted_reviews.append({
+            'reviewid': review.reviewid,
             'rating': review.rating,
             'review': review.review,
             'dtime': review.dtime,
             'reviewer_name': f"{review.firstname} {review.lastname}",
-            'buyerid': review.buyerid
+            'buyerid': review.buyerid,
+            'helpful_count': review.helpful_count,
+            'marked_helpful_by_user': review.marked_helpful_by_user
         })
 
     seller_review = None

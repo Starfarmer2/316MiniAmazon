@@ -606,6 +606,8 @@ def toggle_seller_helpful():
     try:
         reviewid = request.form.get('reviewid')
         seller_id = request.form.get('seller_id')
+        return_to = request.form.get('return_to')
+        product_id = request.form.get('product_id')
         
         # Check if already marked
         marked = app.db.execute('''
@@ -626,7 +628,11 @@ def toggle_seller_helpful():
             ''', reviewid=reviewid, user_id=current_user.userid)
             flash('Marked as helpful')
         
-        return redirect(url_for('users.user_profile', user_id=seller_id))
+        # Redirect based on where the request came from
+        if return_to == 'product':
+            return redirect(url_for('products.product_detail', product_id=product_id))
+        else:
+            return redirect(url_for('users.user_profile', user_id=seller_id))
         
     except Exception as e:
         print(f"Error in toggle_seller_helpful: {str(e)}")
