@@ -441,7 +441,7 @@ def seller_analytics():
     top_5_products = app.db.execute(top_5_query, seller_id=current_user.userid)
 
     analytics_data = {
-        "total_purchases": [{"prodname": row.prodname, "total_purchases": row.total_purchases} for row in total_purchases],
+        "total_purchases": [{"prodname": row.prodname, "productid": row.productid,"total_purchases": row.total_purchases} for row in total_purchases],
         "top_5_products": [{"prodname": row.prodname, "total_purchases": row.total_purchases} for row in top_5_products]
     }
 
