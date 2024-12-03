@@ -103,7 +103,7 @@
                         <p class="buyer-info"><strong>Buyer:</strong> {{ order.buyer_name }} ({{ order.address }})</p>
                         <p><strong>Total Items:</strong> {{ order.total_items }}</p>
                         <p><strong>Status:</strong> {{ "Fulfilled" if order.status else "Pending" }}</p>
-                        <form action="{{ url_for('orders.mark_fulfilled', product_id=order.productid, buyer_id=order.userid, dtime=order.dtime) }}" method="POST">
+                        <form action="{{ url_for('orders.mark_fulfilled', product_id=order.productid, buyer_id=order.buyer_id, dtime=order.dtime) }}" method="POST">
                             {% if not order.status %}
                                 <button type="submit" class="btn btn-success">Mark as Fulfilled</button>
                             {% endif %}
