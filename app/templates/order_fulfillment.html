@@ -93,39 +93,31 @@
                 </div>
             </div>
         </form>
-
-<!-- Orders Section -->
-<div class="order-section">
-    {% if orders %}
-        {% for order in orders %}
-            <div class="order-item">
-                <h4>Order Date: {{ order.dtime.strftime('%Y-%m-%d %H:%M:%S') }}</h4>
-                <p><strong>Buyer:</strong> {{ order.buyer_name }}</p>
-                <p><strong>Buyer Address:</strong> {{ order.address }}</p>
-                <p><strong>Total Items:</strong> {{ order.total_items }}</p>
-                <p><strong>Overall Status:</strong> {{ "Fulfilled" if order.overall_status else "Pending" }}</p>
-                
-                <h5>Products:</h5>
-                <ul>
-                    {% for product in order.products %}
-                        <li>
-                            <p><strong>Product:</strong> {{ product.prodname }}</p>
-                            <p><strong>Quantity:</strong> {{ product.quantity }}</p>
-                            <p><strong>Status:</strong> {{ "Fulfilled" if product.status else "Pending" }}</p>
-                            {% if not product.status %}
-                                <form action="{{ url_for('orders.mark_fulfilled', product_id=product.productid, buyer_id=order.buyer_id, dtime=order.dtime) }}" method="POST">
-                                    <button type="submit" class="btn btn-success">Mark as Fulfilled</button>
-                                </form>
+        
+        <!-- Orders Section -->
+        <div class="order-section">
+            {% if orders %}
+                {% for order in orders %}
+                    <div class="order-item">
+                        <h4>Order Date: {{ order.dtime.strftime('%Y-%m-%d %H:%M:%S') }}</h4>
+                        <p class="buyer-info"><strong>Buyer:</strong> {{ order.buyer_name }}</p>
+                        <p><strong>Buyer Address:</strong> {{ order.address }}</p>
+                        <p><strong>Total Items:</strong> {{ order.total_items }}</p>
+                        <p><strong>Product:</strong> {{ order.prodname }}</p>
+                        <p><strong>Quantity:</strong> {{ order.quantity }}</p>
+                        <p><strong>Status:</strong> {{ "Fulfilled" if order.status else "Pending" }}</p>
+                        <form action="{{ url_for('orders.mark_fulfilled', product_id=order.productid, buyer_id=order.buyer_id, dtime=order.dtime) }}" method="POST">
+                            {% if not order.status %}
+                                <button type="submit" class="btn btn-success">Mark as Fulfilled</button>
                             {% endif %}
-                        </li>
-                    {% endfor %}
-                </ul>
-            </div>
-        {% endfor %}
-    {% else %}
-        <p>No orders found.</p>
-    {% endif %}
-</div>
+                        </form>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No orders found.</p>
+            {% endif %}
+        </div>
+
 
 
     </div>

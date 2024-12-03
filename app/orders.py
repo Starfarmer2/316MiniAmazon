@@ -76,33 +76,22 @@ def order_confirmation(purchase_time):
 @bp.route('/order_fulfillment', methods=['GET'])
 @login_required
 def order_fulfillment():
-    """
-    Render the Order Fulfillment page for sellers.
-    Group orders by buyer and order time, showing only the seller's products.
-    """
+    #renders the Order Fulfillment page for sellers.
+    
     search_query = request.args.get('search', '').strip()
     status_filter = request.args.get('status', '').lower()  # 'true', 'false', or ''
-
-    # SQL to fetch grouped orders
+    
+    #sQL fetch orders related to the current seller
     base_query = """
-        SELECT p.userid AS buyer_id, p.dtime,
-               u.firstname || ' ' || u.lastname AS buyer_name, u.address,
-               COUNT(p.productid) AS total_items,
-               BOOL_AND(p.status) AS overall_status,
-               json_agg(json_build_object(
-                   'productid', p.productid,
-                   'prodname', pr.prodname,
-                   'quantity', p.quantity,
-                   'status', p.status
-               )) AS products
+        SELECT p.productid, p.userid AS buyer_id, p.dtime, p.quantity, p.status,
+               u.firstname || ' ' || u.lastname AS buyer_name, u.address, pr.prodname
         FROM Purchases p
         JOIN Products pr ON p.productid = pr.productid
         JOIN Users u ON p.userid = u.userid
         WHERE pr.sellerid = :seller_id
-    """
+        """
     params = {'seller_id': current_user.userid}
-
-    # Add search and filter conditions
+    #search and filter conditions
     if search_query:
         base_query += """
             AND (u.firstname || ' ' || u.lastname ILIKE :search
@@ -113,34 +102,25 @@ def order_fulfillment():
     
     if status_filter in ['true', 'false']:
         base_query += " AND p.status = :status"
-        params['status'] = (status_filter == 'true')
+        params['status'] = (status_filter == 'true')  #string to boolean
     
-    # Add grouping and ordering
-    base_query += """
-        GROUP BY p.userid, p.dtime, u.firstname, u.lastname, u.address
-        ORDER BY p.dtime DESC
-    """
-
-    # Execute the query and map results
-    try:
-        rows = app.db.execute(base_query, **params)
-    except Exception as e:
-        print(f"Error fetching orders: {e}")
-        rows = []
-
-    # Transform query results into dictionaries
+    #dd reverse chronological order
+    base_query += " ORDER BY p.dtime DESC"
+    
+    orders = app.db.execute(base_query, **params)
     order_list = []
-    for row in rows:
+    for order in orders:
         order_list.append({
-            'buyer_id': row[0],
-            'dtime': row[1],
-            'buyer_name': row[2],
-            'address': row[3],
-            'total_items': row[4],
-            'overall_status': row[5],
-            'products': row[6],  # This will be the JSON-aggregated product list
+            'productid': order.productid,
+            'buyer_id': order.buyer_id,
+            'dtime': order.dtime,
+            'quantity': order.quantity,
+            'status': order.status,
+            'buyer_name': order.buyer_name,
+            'address': order.address,
+            'prodname': order.prodname,
         })
-
+    
     return render_template('order_fulfillment.html', orders=order_list)
 
 
