@@ -632,3 +632,30 @@ def toggle_seller_helpful():
         print(f"Error in toggle_seller_helpful: {str(e)}")
         flash('Error updating helpful status')
         return redirect(url_for('index.index'))
+
+
+@bp.route('/update_account', methods=['POST'])
+@login_required
+def update_account():
+    """
+    Handle the form submission for updating user's email and address.
+    """
+    email = request.form.get('email')
+    address = request.form.get('address')
+
+    # Update user information
+    current_user.email = email
+    current_user.address = address
+    current_user.save()
+
+    # Update seller information if user is a seller
+    if current_user.is_seller():
+        app.db.execute("""
+            UPDATE Sellers
+            SET email = :email,
+                address = :address
+            WHERE userid = :userid
+        """, userid=current_user.userid, email=email, address=address)
+
+    flash('Account updated successfully!')
+    return redirect(url_for('users.account'))
