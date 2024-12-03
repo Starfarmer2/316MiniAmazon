@@ -417,7 +417,7 @@ def seller_analytics():
     """
     Fetch analytics data for the current seller.
     """
-    #total purchases for each product
+    #Total purchases for each product
     total_purchases_query = """
         SELECT p.productid, p.prodname, COALESCE(SUM(pr.quantity), 0) AS total_purchases
         FROM Products p
@@ -428,7 +428,7 @@ def seller_analytics():
     """
     total_purchases = app.db.execute(total_purchases_query, seller_id=current_user.userid)
 
-    #top 5 most purchased products for visualization
+    #Top 5 purchased products for visualization
     top_5_query = """
         SELECT p.prodname, COALESCE(SUM(pr.quantity), 0) AS total_purchases
         FROM Products p
@@ -441,7 +441,8 @@ def seller_analytics():
     top_5_products = app.db.execute(top_5_query, seller_id=current_user.userid)
 
     analytics_data = {
-        "total_purchases": total_purchases,
+        "total_purchases": [{"prodname": row.prodname, "total_purchases": row.total_purchases} for row in total_purchases],
         "top_5_products": [{"prodname": row.prodname, "total_purchases": row.total_purchases} for row in top_5_products]
     }
-    return analytics_data
+
+    return jsonify(analytics_data)
