@@ -116,25 +116,35 @@
 
         <div class="profile-section">
             <h2>My Profile</h2>
-            <ul class="list-group">
-                <li class="list-group-item"><strong>User ID:</strong> {{ current_user.userid }}</li>
-                <li class="list-group-item"><strong>Email:</strong> {{ current_user.email }}</li>
-                <li class="list-group-item"><strong>First Name:</strong> {{ current_user.firstname }}</li>
-                <li class="list-group-item"><strong>Last Name:</strong> {{ current_user.lastname }}</li>
-                <li class="list-group-item"><strong>Address:</strong> {{ current_user.address }}</li>
-            </ul>
-            <div class="seller-actions mt-4">
-                <div class="edit-account">
-                    <button class="btn btn-warning" data-toggle="modal" data-target="#editAccountModal">Edit Account</button>
-                </div>                
-                {% if not is_seller %}
-                    <form action="{{ url_for('users.register_seller') }}" method="post">
-                        <button type="submit" class="btn btn-primary">Register as a Seller</button>
-                    </form>
-                {% else %}
-                    <a href="{{ url_for('products.manage_inventory') }}" class="btn btn-primary">Manage Inventory</a>
-                {% endif %}
-            </div>            
+            
+                <img 
+                    src="{{ current_user.profile_photo or url_for('static', filename='images/no_profile_pic_available.png') }}" 
+                    alt="Profile Photo" 
+                    class="profile-photo" 
+                    style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; margin-bottom: 15px;"
+                    onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/default-profile.png') }}';">
+                <ul class="list-group">
+                    <li class="list-group-item"><strong>User ID:</strong> {{ current_user.userid }}</li>
+                    <li class="list-group-item"><strong>Email:</strong> {{ current_user.email }}</li>
+                    <li class="list-group-item"><strong>First Name:</strong> {{ current_user.firstname }}</li>
+                    <li class="list-group-item"><strong>Last Name:</strong> {{ current_user.lastname }}</li>
+                    <li class="list-group-item"><strong>Address:</strong> {{ current_user.address }}</li>
+                </ul>
+                <div class="seller-actions mt-4">
+                    <div class="edit-account">
+                        <button class="btn btn-warning" data-toggle="modal" data-target="#editAccountModal">Edit Account</button>
+                    </div>                
+                    {% if not is_seller %}
+                        <form action="{{ url_for('users.register_seller') }}" method="post">
+                            <button type="submit" class="btn btn-primary">Register as a Seller</button>
+                        </form>
+                    {% else %}
+                        <a href="{{ url_for('products.manage_inventory') }}" class="btn btn-primary">Manage Inventory</a>
+                    {% endif %}
+                </div>            
+            </div>
+            
+               
         </div>
 
         <div class="recent-reviews-section">

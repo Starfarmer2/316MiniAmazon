@@ -15,6 +15,7 @@ class User(UserMixin):
         self.address = address
         self.balance = balance
 
+
     def save(self):
         app.db.execute("""
         UPDATE Users
