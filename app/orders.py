@@ -128,9 +128,24 @@ def order_fulfillment():
 @bp.route('/order_fulfillment/mark_fulfilled/<int:product_id>/<int:buyer_id>/<string:dtime>', methods=['POST'])
 @login_required
 def mark_fulfilled(product_id, buyer_id, dtime):
-    """
-    Handle marking an order item as fulfilled.
-    """
-    # Placeholder for actual implementation
-    flash(f"Order with product ID {product_id} for buyer ID {buyer_id} has been marked as fulfilled.")
+
+    #marking an order item as fulfilled.
+    try:
+        #updates status in the Purchases table
+        rows_affected = app.db.execute("""
+            UPDATE Purchases
+            SET status = TRUE
+            WHERE productid = :product_id AND userid = :buyer_id AND dtime = :dtime
+        """, 
+        product_id=product_id, 
+        buyer_id=buyer_id, 
+        dtime=dtime)
+        if rows_affected == 0:
+            flash("No matching order was found or already fulfilled.", "warning")
+        else:
+            flash("Order item marked as fulfilled successfully!", "success")
+    except Exception as e:
+        print(f"Error marking order as fulfilled: {e}")
+        flash("Failed to mark order item as fulfilled.", "danger")
+
     return redirect(url_for('orders.order_fulfillment'))
