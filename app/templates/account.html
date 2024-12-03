@@ -233,7 +233,6 @@
                 <div class="modal-body">
                     <!-- Account Edit Form -->
                     <form id="editAccountForm" method="POST" action="{{ url_for('users.update_account') }}">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="form-group">
                             <label for="email">Email</label>
                             <input type="email" class="form-control" id="email" name="email" value="{{ current_user.email }}" required>
@@ -243,7 +242,7 @@
                             <input type="text" class="form-control" id="address" name="address" value="{{ current_user.address }}">
                         </div>
                         <button type="submit" class="btn btn-primary">Save Changes</button>
-                    </form>
+                    </form>                    
                 </div>
             </div>
         </div>

@@ -638,7 +638,7 @@ def toggle_seller_helpful():
 @login_required
 def update_account():
     """
-    Handle the form submission for updating user's email and address.
+    Handle the form submission for updating user's email and address without CSRF protection.
     """
     email = request.form.get('email')
     address = request.form.get('address')
