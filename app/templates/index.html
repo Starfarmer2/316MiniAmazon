@@ -157,6 +157,16 @@
         </div>
     </div>
 
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="alert alert-success">
+                    {% for message in messages %}
+                        <p>{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
     <div id="intro_section">
         <div id="intro_text">
             <p id="intro_myName">Mamazon</p>

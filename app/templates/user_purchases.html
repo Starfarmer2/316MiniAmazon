@@ -272,6 +272,15 @@ var baseImageUrl = "{{ url_for('products.serve_product_image', filename='') }}";
     </div>
 
     <div id="B_section">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="alert alert-success">
+                    {% for message in messages %}
+                        <p>{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
         <h2 class="B_section_title">Your Purchase History</h2>
 
         <!-- Filter Form in a Single Row -->
