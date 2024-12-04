@@ -545,6 +545,8 @@ def delete_product_review(product_id):
     except Exception as e:
         print(f"Error in delete_product_review: {str(e)}")  # Debug print
         flash('Error deleting review')
+
+    return redirect(url_for('products.product_detail', product_id=product_id))  # Add this return statement
     
 @bp.route('/seller/<int:seller_id>/review', methods=['POST'])
 @login_required
