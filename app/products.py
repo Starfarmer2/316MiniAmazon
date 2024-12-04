@@ -528,7 +528,7 @@ def seller_analytics():
 
     #Top 5 purchased products for visualization
     top_5_query = """
-        SELECT p.prodname, COALESCE(SUM(pr.quantity), 0) AS total_purchases
+        SELECT p.prodname, COALESCE(SUM(pr.quantity), 0) AS total_purchases, p.price
         FROM Products p
         LEFT JOIN Purchases pr ON p.productid = pr.productid
         WHERE p.sellerid = :seller_id
