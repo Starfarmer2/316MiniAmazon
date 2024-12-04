@@ -14,6 +14,10 @@ Daniel Zeng – Seller Guru
 3. Added basic seller analytics to include total sales/product, total revenue, top 5 products by revenue chart
 
 Abhishek Chataut – Carts Guru
+1. Added view details from products in purchase history
+2. Added updating images of products
+3. Added images to profile pictures
+4. Checked and made all queries secure to SQL injection
 
 Muchang Bahng – Social Guru
 1. Added `MarkedProductReviewHelpful` and `MarkedSellerReviewHelpful` schemas.
