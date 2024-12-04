@@ -182,7 +182,7 @@
                 <img src="{{ url_for('static', filename='images/warehouse_worker_' ~ i ~ '.jpg') }}" alt="Warehouse Worker {{ student_names[i-1] }}" style="width: 100%; border-radius: 10px;">
                 <p style="font-weight: bold; margin-top: 10px; font-size: 24px;">{{ student_names[i-1] }}</p>
                 <br/>
-                <p style="font-weight: bold; margin-top: 10px; font-size: 24px;"> {{"Warehouse Worker " + i}}</p>
+                <p style="font-weight: bold; margin-top: 10px; font-size: 24px;"> {{"Warehouse Worker " + str(i)}}</p>
             </div>
             {% endfor %}
         </div>
