@@ -7,37 +7,6 @@
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
-<style>
-.toast {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background-color: white;
-    padding: 15px 25px;
-    border-radius: 5px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    z-index: 1000;
-    animation: slideIn 0.5s, fadeOut 0.5s 2.5s forwards;
-}
-
-.toast-success {
-    border-left: 4px solid #4CAF50;
-}
-
-.toast-error {
-    border-left: 4px solid #f44336;
-}
-
-@keyframes slideIn {
-    from {transform: translateX(100%);}
-    to {transform: translateX(0);}
-}
-
-@keyframes fadeOut {
-    from {opacity: 1;}
-    to {opacity: 0;}
-}
-</style>
     <style>
         body {
             background-color: #f8f9fa;
@@ -108,7 +77,7 @@
     <div class="container">
         {% with messages = get_flashed_messages() %}
             {% if messages %}
-                <div class="alert alert-success">
+                <div class="alert alert-info">
                     {% for message in messages %}
                         <p>{{ message }}</p>
                     {% endfor %}
