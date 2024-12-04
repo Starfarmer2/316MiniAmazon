@@ -532,7 +532,7 @@ def seller_analytics():
         FROM Products p
         LEFT JOIN Purchases pr ON p.productid = pr.productid
         WHERE p.sellerid = :seller_id
-        GROUP BY p.prodname
+        GROUP BY p.prodname, p.price
         ORDER BY total_purchases DESC
         LIMIT 5
     """
