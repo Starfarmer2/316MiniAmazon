@@ -306,7 +306,7 @@
             </div>
         </div>
 
-        {% if current_user.is_authenticated and current_user.userid != profile_user.userid %}
+        {% if (current_user.is_authenticated and current_user.userid != profile_user.userid) and profile_user.is_seller() %}
         <div class="seller-review-section mt-4">
             <h2>Write a Review for this Seller</h2>
             
