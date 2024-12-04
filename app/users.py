@@ -12,6 +12,8 @@ from .models.product import Product
 from .models.seller import Seller
 from collections import namedtuple
 from datetime import datetime
+from werkzeug.security import check_password_hash, generate_password_hash
+from flask import flash, redirect, url_for, request
 
 from flask import Blueprint
 bp = Blueprint('users', __name__)
@@ -42,6 +44,45 @@ def login():
 
         return redirect(next_page)
     return render_template('login.html', title='Sign In', form=form)
+
+@bp.route('/change_password', methods=['POST'])
+@login_required
+def change_password():
+    current_password = request.form.get('current_password')
+    new_password = request.form.get('new_password')
+    confirm_new_password = request.form.get('confirm_new_password')
+
+    # Fetch the current password hash from the database
+    password_row = app.db.execute("""
+        SELECT password FROM Users
+        WHERE userid = :userid
+    """, userid=current_user.userid)
+
+    if not password_row:
+        flash('Error retrieving user password.', 'danger')
+        return redirect(url_for('users.account'))
+
+    stored_password_hash = password_row[0][0]
+
+    if not check_password_hash(stored_password_hash, current_password):
+        flash('Current password is incorrect', 'danger')
+        return redirect(url_for('users.account'))
+
+    if new_password != confirm_new_password:
+        flash('New passwords do not match', 'danger')
+        return redirect(url_for('users.account'))
+
+    # Update the password in the database
+    new_password_hash = generate_password_hash(new_password)
+    app.db.execute("""
+        UPDATE Users
+        SET password = :password
+        WHERE userid = :userid
+    """, password=new_password_hash, userid=current_user.userid)
+
+    flash('Password updated successfully', 'success')
+    return redirect(url_for('users.account'))
+
 
 @bp.route('/register_seller', methods=['POST'])
 @login_required
@@ -649,6 +690,20 @@ def update_account():
     email = request.form.get('email')
     address = request.form.get('address')
 
+    # Check if email already exists for a different user
+    existing_email = app.db.execute("""
+        SELECT userid FROM Users 
+        WHERE email = :email AND userid != :userid
+    """, email=email, userid=current_user.userid)
+
+    if existing_email:
+        return """
+            <script>
+                alert('Email address is already registered');
+                window.location.href = '/account';
+            </script>
+        """
+
     # Update user information
     current_user.email = email
     current_user.address = address
@@ -663,5 +718,9 @@ def update_account():
             WHERE userid = :userid
         """, userid=current_user.userid, email=email, address=address)
 
-    flash('Account updated successfully!')
-    return redirect(url_for('users.account'))
+    return """
+        <script>
+            alert('Account updated successfully!');
+            window.location.href = '/account';
+        </script>
+    """

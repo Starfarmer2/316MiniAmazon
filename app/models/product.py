@@ -74,7 +74,7 @@ class Product:
                 imagepath = :imagepath, 
                 price = :price, 
                 quantity = :quantity, 
-                category = :category
+                category = :category333
             WHERE productid = :productid
             """,
                        productid=productid,
