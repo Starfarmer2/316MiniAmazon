@@ -1,4 +1,4 @@
-from flask import Blueprint, redirect, url_for, flash, request, render_template
+from flask import Blueprint, redirect, url_for, flash, request, render_template, make_response
 from flask_login import current_user, login_required
 from .models.product import Product
 from .models.cart import Cart
@@ -51,7 +51,14 @@ def view_cart():
     cart_items = Cart.get_user_cart(current_user.userid, status='in_cart')
     saved_items = Cart.get_user_cart(current_user.userid, status='saved')
     total = Cart.get_cart_total(current_user.userid, status='in_cart')
-    return render_template('cart.html', cart_items=cart_items, saved_items=saved_items, total=total)
+
+    # Render the template and then modify the response headers
+    response = make_response(render_template('cart.html', cart_items=cart_items, saved_items=saved_items, total=total))
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+
+    return response
 
 @bp.route('/update_cart_item/<int:productid>', methods=['POST'])
 @login_required
