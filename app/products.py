@@ -504,7 +504,7 @@ def seller_analytics():
     """
     #Total purchases for each product
     total_purchases_query = """
-        SELECT p.productid, p.prodname, COALESCE(SUM(pr.quantity), 0) AS total_purchases
+        SELECT p.productid, p.prodname, COALESCE(SUM(pr.quantity), 0) AS total_purchases, p.price
         FROM Products p
         LEFT JOIN Purchases pr ON p.productid = pr.productid
         WHERE p.sellerid = :seller_id
@@ -512,6 +512,19 @@ def seller_analytics():
         ORDER BY total_purchases DESC
     """
     total_purchases = app.db.execute(total_purchases_query, seller_id=current_user.userid)
+
+    total_revenue = 0
+    total_revenue_per_product = []
+
+    for row in total_purchases:
+        product_revenue = row.total_purchases * row.price
+        total_revenue += product_revenue
+        total_revenue_per_product.append({
+            "prodname": row.prodname,
+            "productid": row.productid,
+            "total_purchases": row.total_purchases,
+            "revenue": product_revenue
+        })
 
     #Top 5 purchased products for visualization
     top_5_query = """
@@ -526,7 +539,8 @@ def seller_analytics():
     top_5_products = app.db.execute(top_5_query, seller_id=current_user.userid)
 
     analytics_data = {
-        "total_purchases": [{"prodname": row.prodname, "productid": row.productid,"total_purchases": row.total_purchases} for row in total_purchases],
+        "total_purchases": total_revenue_per_product,
+        "total_revenue": total_revenue,
         "top_5_products": [{"prodname": row.prodname, "total_purchases": row.total_purchases} for row in top_5_products]
     }
 

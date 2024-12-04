@@ -221,6 +221,7 @@
                 <ul id="total-purchases-list">
                     <!-- Populated via JavaScript -->
                 </ul>
+                <h4 id="total-revenue">Total Revenue: $0.00</h4>
             </div>
             
             <!-- Top 5 Most Purchased Products Chart -->
@@ -351,13 +352,15 @@
             .then(data => {
                 const totalPurchasesList = document.getElementById('total-purchases-list');
                 const topProductsChartCanvas = document.getElementById('topProductsChart').getContext('2d');
+                const totalRevenueElement = document.getElementById('total-revenue');
                 
                 // Populate total purchases list
                 data.total_purchases.forEach(product => {
                     const listItem = document.createElement('li');
-                    listItem.textContent = `${product.prodname} (ID: ${product.productid}): ${product.total_purchases} units sold`;
+                    listItem.textContent = `${product.prodname} (ID: ${product.productid}): ${product.total_purchases} units sold - $${product.revenue.toFixed(2)} in revenue`;
                     totalPurchasesList.appendChild(listItem);
                 });
+                totalRevenueElement.textContent = `Total Revenue: $${data.total_revenue.toFixed(2)}`;
 
                 // Prepare data for the chart
                 const topProducts = data.top_5_products.map(product => product.prodname);
