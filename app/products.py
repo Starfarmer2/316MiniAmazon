@@ -538,10 +538,20 @@ def seller_analytics():
     """
     top_5_products = app.db.execute(top_5_query, seller_id=current_user.userid)
 
+    top_5_revenue = []
+    for row in top_5_products:
+        product_revenue = row.total_purchases * row.price
+        top_5_revenue.append({
+            "prodname": row.prodname,
+            "total_purchases": row.total_purchases,
+            "revenue": product_revenue
+        })
+
+
     analytics_data = {
         "total_purchases": total_revenue_per_product,
         "total_revenue": total_revenue,
-        "top_5_products": [{"prodname": row.prodname, "total_purchases": row.total_purchases} for row in top_5_products]
+        "top_5_products": top_5_revenue
     }
 
     return jsonify(analytics_data)

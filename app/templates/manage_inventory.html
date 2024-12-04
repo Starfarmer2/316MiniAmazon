@@ -346,51 +346,76 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Fetch analytics data
-        fetch('{{ url_for("products.seller_analytics") }}')
-            .then(response => response.json())
-            .then(data => {
-                const totalPurchasesList = document.getElementById('total-purchases-list');
-                const topProductsChartCanvas = document.getElementById('topProductsChart').getContext('2d');
-                const totalRevenueElement = document.getElementById('total-revenue');
-                
-                // Populate total purchases list
-                data.total_purchases.forEach(product => {
-                    const listItem = document.createElement('li');
-                    listItem.textContent = `${product.prodname} (ID: ${product.productid}): ${product.total_purchases} units sold - $${product.revenue.toFixed(2)} in revenue`;
-                    totalPurchasesList.appendChild(listItem);
-                });
-                totalRevenueElement.textContent = `Total Revenue: $${data.total_revenue.toFixed(2)}`;
+    // Fetch analytics data
+    fetch('{{ url_for("products.seller_analytics") }}')
+        .then(response => response.json())
+        .then(data => {
+            const totalPurchasesList = document.getElementById('total-purchases-list');
+            const topProductsChartCanvas = document.getElementById('topProductsChart').getContext('2d');
+            const totalRevenueElement = document.getElementById('total-revenue');
 
-                // Prepare data for the chart
-                const topProducts = data.top_5_products.map(product => product.prodname);
-                const topPurchases = data.top_5_products.map(product => product.total_purchases);
+            // Populate total purchases list with revenue
+            data.total_purchases.forEach(product => {
+                const listItem = document.createElement('li');
+                listItem.textContent = `${product.prodname}: ${product.total_purchases} units sold - $${product.revenue.toFixed(2)} in revenue`;
+                totalPurchasesList.appendChild(listItem);
+            });
 
-                // Create the bar chart
-                new Chart(topProductsChartCanvas, {
-                    type: 'bar',
-                    data: {
-                        labels: topProducts,
-                        datasets: [{
-                            label: 'Total Purchases',
-                            data: topPurchases,
-                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                            borderColor: 'rgba(75, 192, 192, 1)',
-                            borderWidth: 1
-                        }]
+            // Update total revenue
+            totalRevenueElement.textContent = `Total Revenue: $${data.total_revenue.toFixed(2)}`;
+
+            // Prepare data for the chart
+            const topProducts = data.top_5_products.map(product => product.prodname);
+            const topPurchases = data.top_5_products.map(product => product.revenue);  // Use revenue instead of quantity
+
+            // Create the bar chart
+            new Chart(topProductsChartCanvas, {
+                type: 'bar',
+                data: {
+                    labels: topProducts,
+                    datasets: [{
+                        label: 'Revenue ($)',
+                        data: topPurchases,
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
                     },
-                    options: {
-                        responsive: true,
-                        scales: {
-                            y: {
-                                beginAtZero: true
+                    tooltips: {
+                        callbacks: {
+                            //Customize tooltip to show both revenue and total purchases
+                            label: function(tooltipItem, data) {
+                                const productIndex = tooltipItem.index;
+                                const revenue = data.datasets[0].data[productIndex];
+                                const totalPurchases = data.totalPurchases[productIndex]; 
+
+                                //format to display both revenue and total purchases
+                                return `${data.labels[productIndex]}: $${revenue.toFixed(2)} in revenue, ${totalPurchases} units sold`;
+                            }
+                        }
+                    },
+                    //adding data the chart for total purchases as well (hidden data)
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(tooltipItem) {
+                                    return `${tooltipItem.label}: $${tooltipItem.raw.toFixed(2)} in revenue (Total Purchases: ${tooltipItem.raw.total_purchases})`;
+                                }
                             }
                         }
                     }
-                });
-            })
-            .catch(error => console.error('Error fetching analytics:', error));
-    });
+                }
+            });
+        })
+        .catch(error => console.error('Error fetching analytics:', error));
+});
 </script>
 
 
