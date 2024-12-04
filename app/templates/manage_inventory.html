@@ -367,8 +367,8 @@
             // Prepare data for the chart
             const topProducts = data.top_5_products.map(product => product.prodname);
             const topPurchases = data.top_5_products.map(product => product.revenue);  // Use revenue instead of quantity
+            const topQuantities = data.top_5_products.map(product => product.total_purchases);  // Separate quantities
 
-            // Create the bar chart
             new Chart(topProductsChartCanvas, {
                 type: 'bar',
                 data: {
@@ -390,24 +390,11 @@
                     },
                     tooltips: {
                         callbacks: {
-                            //Customize tooltip to show both revenue and total purchases
                             label: function(tooltipItem, data) {
                                 const productIndex = tooltipItem.index;
                                 const revenue = data.datasets[0].data[productIndex];
-                                const totalPurchases = data.totalPurchases[productIndex]; 
-
-                                //format to display both revenue and total purchases
+                                const totalPurchases = topQuantities[productIndex]; //reference to totalPurchases
                                 return `${data.labels[productIndex]}: $${revenue.toFixed(2)} in revenue, ${totalPurchases} units sold`;
-                            }
-                        }
-                    },
-                    //adding data the chart for total purchases as well (hidden data)
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label: function(tooltipItem) {
-                                    return `${tooltipItem.label}: $${tooltipItem.raw.toFixed(2)} in revenue (Total Purchases: ${tooltipItem.raw.total_purchases})`;
-                                }
                             }
                         }
                     }
