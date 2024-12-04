@@ -177,6 +177,7 @@
                     <div class="change-password mt-4">
                         <button class="btn btn-danger" data-toggle="modal" data-target="#changePasswordModal">Change Password</button>
                     </div>
+                    <br>
                     {% if not is_seller %}
                         <form action="{{ url_for('users.register_seller') }}" method="post">
                             <button type="submit" class="btn btn-primary">Register as a Seller</button>
