@@ -28,7 +28,7 @@ def add_to_cart(product_id):
     else:
         flash('Error adding item to cart.')
     
-    return redirect(url_for('products.product_detail', product_id=product_id))
+    return redirect(url_for('products.all_products'))
 
 @bp.route('/remove_from_cart/<int:productid>', methods=['POST'])
 @login_required
