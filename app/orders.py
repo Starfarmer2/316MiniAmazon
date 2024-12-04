@@ -11,7 +11,7 @@ bp = Blueprint('orders', __name__)
 def checkout():
     cart_items = Cart.get_user_cart(current_user.userid)
     if not cart_items:
-        # flash('Your cart is empty.')
+        flash('Your cart is empty.')
         return redirect(url_for('cart.view_cart'))
     
     if request.method == 'POST':
@@ -19,85 +19,24 @@ def checkout():
         all_purchases_successful = True
         
         # Loop through cart items to process purchases
-        message = "" 
         for item in cart_items:
             print(f'Processing purchase for product {item.productname} with quantity {item.quantity}')
             purchase, message = Purchase.create_purchase(current_user.userid, item.productid, item.quantity)
             
             # Handle error during purchase
             if not purchase:
-                # flash(f'Error purchasing {item.productname}: {message}')
+                flash(f'Error purchasing {item.productname}: {message}')
                 all_purchases_successful = False
                 break
         
         # If all purchases are successful, clear the cart and redirect to purchase history
         if all_purchases_successful:
-            # print('All purchases successful')  # Debugging line
+            print('All purchases successful')  # Debugging line
             Cart.clear_cart(current_user.userid)
-            # flash('All items purchased successfully!')
-            # return redirect(url_for('users.user_purchases', user_id=current_user.userid))
-            return f"""
-                <style>
-                    .toast {{
-                        position: fixed;
-                        top: 20px;
-                        right: 20px;
-                        background-color: white;
-                        padding: 15px 25px;
-                        border-radius: 5px;
-                        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-                        z-index: 1000;
-                        animation: slideIn 0.5s, fadeOut 0.5s 2.5s forwards;
-                        border-left: 4px solid green;
-                    }}
-                    @keyframes slideIn {{
-                        from {{transform: translateX(100%);}}
-                        to {{transform: translateX(0);}}
-                    }}
-                    @keyframes fadeOut {{
-                        from {{opacity: 1;}}
-                        to {{opacity: 0;}}
-                    }}
-                </style>
-                <div class="toast">All items purchased successfully!</div>
-                <script>
-                    setTimeout(() => {{
-                        window.location.href = '/user/{current_user.userid}/purchases';
-                    }}, 1000);
-                </script>
-            """
-
+            flash('All items purchased successfully!')
+            return redirect(url_for('users.user_purchases', user_id=current_user.userid))
         else:
-            return f"""
-                <style>
-                    .toast {{
-                        position: fixed;
-                        top: 20px;
-                        right: 20px;
-                        background-color: white;
-                        padding: 15px 25px;
-                        border-radius: 5px;
-                        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-                        z-index: 1000;
-                        animation: slideIn 0.5s, fadeOut 0.5s 2.5s forwards;
-                        border-left: 4px solid red;
-                    }}
-                    @keyframes slideIn {{
-                        from {{transform: translateX(100%);}}
-                        to {{transform: translateX(0);}}
-                    }}
-                    @keyframes fadeOut {{
-                        from {{opacity: 1;}}
-                        to {{opacity: 0;}}
-                    }}
-                </style>
-                <div class="toast">{message}</div>
-                <script>
-                    setTimeout(() => {{
-                        window.location.href = '/user/{current_user.userid}/purchases';
-                    }}, 1000);
-                </script>
-            """
+            flash('There was an error processing your order. Please try again.')
 
     total = sum(item.unit_price * item.quantity for item in cart_items)
     return render_template('checkout.html', cart_items=cart_items, total=total)
@@ -109,7 +48,7 @@ def checkout():
 def order_confirmation(purchase_time):
     purchases = Purchase.get_by_time(current_user.userid, purchase_time)
     if not purchases:
-        # flash('Order not found.')
+        flash('Order not found.')
         return redirect(url_for('index.index'))
     
     # We need to fetch product details separately since Purchase doesn't include price and name
@@ -200,6 +139,7 @@ def mark_fulfilled(product_id, buyer_id, dtime):
         dtime=dtime)
         
         if rows_affected == 0:
+            flash("No matching order was found or already fulfilled.", "warning")
             return """
                 <style>
                     .toast {
@@ -231,6 +171,7 @@ def mark_fulfilled(product_id, buyer_id, dtime):
                 </script>
             """
         else:
+            flash("Order item marked as fulfilled successfully!", "success")
             return """
                 <style>
                     .toast {
@@ -261,8 +202,10 @@ def mark_fulfilled(product_id, buyer_id, dtime):
                     }, 1000);
                 </script>
             """
+
     except Exception as e:
         print(f"Error marking order as fulfilled: {e}")
+        flash("Failed to mark order item as fulfilled.", "danger")
         return """
             <style>
                 .toast {

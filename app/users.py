@@ -46,36 +46,8 @@ def login():
     if form.validate_on_submit():
         user = User.get_by_auth(form.email.data, form.password.data)
         if user is None:
-            return """
-                <style>
-                    .toast {
-                        position: fixed;
-                        top: 20px;
-                        right: 20px;
-                        background-color: white;
-                        padding: 15px 25px;
-                        border-radius: 5px;
-                        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-                        z-index: 1000;
-                        animation: slideIn 0.5s, fadeOut 0.5s 2.5s forwards;
-                        border-left: 4px solid red;
-                    }
-                    @keyframes slideIn {
-                        from {transform: translateX(100%);}
-                        to {transform: translateX(0);}
-                    }
-                    @keyframes fadeOut {
-                        from {opacity: 1;}
-                        to {opacity: 0;}
-                    }
-                </style>
-                <div class="toast">Invalid username or password. </div>
-                <script>
-                    setTimeout(() => {
-                        window.location.href = '/login';
-                    }, 1000);
-                </script>
-            """
+            flash('Invalid email or password.')
+            return redirect(url_for('users.login'))
         login_user(user)
         next_page = request.args.get('next')
         if not next_page or url_parse(next_page).netloc != '':
@@ -98,103 +70,19 @@ def change_password():
     """, userid=current_user.userid) 
 
     if not password_row:
-        return """
-            <style>
-                .toast {
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    background-color: white;
-                    padding: 15px 25px;
-                    border-radius: 5px;
-                    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-                    z-index: 1000;
-                    animation: slideIn 0.5s, fadeOut 0.5s 2.5s forwards;
-                    border-left: 4px solid #f44336;
-                }
-                @keyframes slideIn {
-                    from {transform: translateX(100%);}
-                    to {transform: translateX(0);}
-                }
-                @keyframes fadeOut {
-                    from {opacity: 1;}
-                    to {opacity: 0;}
-                }
-            </style>
-            <div class="toast">Error retrieving user password.</div>
-            <script>
-                setTimeout(() => {
-                    window.location.href = '/account';
-                }, 1000);
-            </script>
-        """
+        flash('Error retrieving user password.', 'danger')
+        return redirect(url_for('users.account'))
 
 
     stored_password_hash = password_row[0][0]
 
     if not check_password_hash(stored_password_hash, current_password):
-        return """
-            <style>
-                .toast {
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    background-color: white;
-                    padding: 15px 25px;
-                    border-radius: 5px;
-                    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-                    z-index: 1000;
-                    animation: slideIn 0.5s, fadeOut 0.5s 2.5s forwards;
-                    border-left: 4px solid #f44336;
-                }
-                @keyframes slideIn {
-                    from {transform: translateX(100%);}
-                    to {transform: translateX(0);}
-                }
-                @keyframes fadeOut {
-                    from {opacity: 1;}
-                    to {opacity: 0;}
-                }
-            </style>
-            <div class="toast">Current password in incorrect.</div>
-            <script>
-                setTimeout(() => {
-                    window.location.href = '/account';
-                }, 1000);
-            </script>
-        """
+        flash('Current password is incorrect', 'danger')
+        return redirect(url_for('users.account'))
 
     if new_password != confirm_new_password:
-        return """
-            <style>
-                .toast {
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    background-color: white;
-                    padding: 15px 25px;
-                    border-radius: 5px;
-                    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-                    z-index: 1000;
-                    animation: slideIn 0.5s, fadeOut 0.5s 2.5s forwards;
-                    border-left: 4px solid #f44336;
-                }
-                @keyframes slideIn {
-                    from {transform: translateX(100%);}
-                    to {transform: translateX(0);}
-                }
-                @keyframes fadeOut {
-                    from {opacity: 1;}
-                    to {opacity: 0;}
-                }
-            </style>
-            <div class="toast">New passwords do not match. </div>
-            <script>
-                setTimeout(() => {
-                    window.location.href = '/account';
-                }, 1000);
-            </script>
-        """
+        flash('New passwords do not match', 'danger')
+        return redirect(url_for('users.account'))
 
     # Update the password in the database
     new_password_hash = generate_password_hash(new_password)
@@ -204,36 +92,8 @@ def change_password():
         WHERE userid = :userid
     """, password=new_password_hash, userid=current_user.userid)
 
-    return """
-        <style>
-            .toast {
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background-color: white;
-                padding: 15px 25px;
-                border-radius: 5px;
-                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-                z-index: 1000;
-                animation: slideIn 0.5s, fadeOut 0.5s 2.5s forwards;
-                border-left: 4px solid #f44336;
-            }
-            @keyframes slideIn {
-                from {transform: translateX(100%);}
-                to {transform: translateX(0);}
-            }
-            @keyframes fadeOut {
-                from {opacity: 1;}
-                to {opacity: 0;}
-            }
-        </style>
-        <div class="toast">Password updated successfully.</div>
-        <script>
-            setTimeout(() => {
-                window.location.href = '/account';
-            }, 1000);
-        </script>
-    """
+    flash('Password updated successfully', 'success')
+    return redirect(url_for('users.account'))
 
 
 @bp.route('/register_seller', methods=['POST'])
@@ -246,36 +106,8 @@ def register_seller():
     """, userid=current_user.userid)
 
     if len(rows) > 0:
-        return """
-            <style>
-                .toast {
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    background-color: white;
-                    padding: 15px 25px;
-                    border-radius: 5px;
-                    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-                    z-index: 1000;
-                    animation: slideIn 0.5s, fadeOut 0.5s 2.5s forwards;
-                    border-left: 4px solid #f44336;
-                }
-                @keyframes slideIn {
-                    from {transform: translateX(100%);}
-                    to {transform: translateX(0);}
-                }
-                @keyframes fadeOut {
-                    from {opacity: 1;}
-                    to {opacity: 0;}
-                }
-            </style>
-            <div class="toast">You are already registered as a seller. </div>
-            <script>
-                setTimeout(() => {
-                    window.location.href = '/account';
-                }, 1000);
-            </script>
-        """
+        flash("You are already registered as a seller.")
+        return redirect(url_for('users.account'))
 
     # Retrieve the password hash directly from the Users table
     password_row = app.db.execute("""
@@ -284,36 +116,8 @@ def register_seller():
     """, userid=current_user.userid)
 
     if not password_row:
-        return """
-            <style>
-                .toast {
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    background-color: white;
-                    padding: 15px 25px;
-                    border-radius: 5px;
-                    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-                    z-index: 1000;
-                    animation: slideIn 0.5s, fadeOut 0.5s 2.5s forwards;
-                    border-left: 4px solid #f44336;
-                }
-                @keyframes slideIn {
-                    from {transform: translateX(100%);}
-                    to {transform: translateX(0);}
-                }
-                @keyframes fadeOut {
-                    from {opacity: 1;}
-                    to {opacity: 0;}
-                }
-            </style>
-            <div class="toast">Error retrieving user password. </div>
-            <script>
-                setTimeout(() => {
-                    window.location.href = '/account';
-                }, 1000);
-            </script>
-        """
+        flash("Error retrieving user password.")
+        return redirect(url_for('users.account'))
 
     password_hash = password_row[0][0]  # Get the hashed password from the result
 
@@ -329,36 +133,8 @@ def register_seller():
        password=password_hash,  # assuming password is already hashed
        balance=current_user.balance)
 
-    return """
-        <style>
-            .toast {
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background-color: white;
-                padding: 15px 25px;
-                border-radius: 5px;
-                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-                z-index: 1000;
-                animation: slideIn 0.5s, fadeOut 0.5s 2.5s forwards;
-                border-left: 4px solid #f44336;
-            }
-            @keyframes slideIn {
-                from {transform: translateX(100%);}
-                to {transform: translateX(0);}
-            }
-            @keyframes fadeOut {
-                from {opacity: 1;}
-                to {opacity: 0;}
-            }
-        </style>
-        <div class="toast">Successfully registered as a seller! </div>
-        <script>
-            setTimeout(() => {
-                window.location.href = '/account';
-            }, 1000);
-        </script>
-    """
+    flash("Successfully registered as a seller!")
+    return redirect(url_for('users.account'))
 
 
 @bp.route('/account')
@@ -405,36 +181,8 @@ def register():
                          form.password.data,
                          form.firstname.data,
                          form.lastname.data):
-            return """
-                <style>
-                    .toast {
-                        position: fixed;
-                        top: 20px;
-                        right: 20px;
-                        background-color: white;
-                        padding: 15px 25px;
-                        border-radius: 5px;
-                        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-                        z-index: 1000;
-                        animation: slideIn 0.5s, fadeOut 0.5s 2.5s forwards;
-                        border-left: 4px solid red;
-                    }
-                    @keyframes slideIn {
-                        from {transform: translateX(100%);}
-                        to {transform: translateX(0);}
-                    }
-                    @keyframes fadeOut {
-                        from {opacity: 1;}
-                        to {opacity: 0;}
-                    }
-                </style>
-                <div class="toast">Congratulations, you are now a registered user! </div>
-                <script>
-                    setTimeout(() => {
-                        window.location.href = '/login';
-                    }, 1000);
-                </script>
-            """
+            flash('Congratulations, you are now a registered user!')
+            return redirect(url_for('users.login'))
 
     return render_template('register.html', title='Register', form=form)
 
@@ -450,36 +198,8 @@ def deposit():
     amount = float(request.form['amount'])
     current_user.balance += amount
     current_user.save()
-    return f"""
-        <style>
-            .toast {{
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background-color: white;
-                padding: 15px 25px;
-                border-radius: 5px;
-                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-                z-index: 1000;
-                animation: slideIn 0.5s, fadeOut 0.5s 2.5s forwards;
-                border-left: 4px solid green;
-            }}
-            @keyframes slideIn {{
-                from {{transform: translateX(100%);}}
-                to {{transform: translateX(0);}}
-            }}
-            @keyframes fadeOut {{
-                from {{opacity: 1;}}
-                to {{opacity: 0;}}
-            }}
-        </style>
-        <div class="toast">Successfully deposited ${amount:.2f} </div>
-        <script>
-            setTimeout(() => {{
-                window.location.href = '/account';
-            }}, 1000);
-        </script>
-    """
+    flash(f'Successfully deposited ${amount:.2f}')
+    return redirect(url_for('users.account'))
 
 @bp.route('/withdraw', methods=['POST'])
 @login_required
@@ -488,74 +208,16 @@ def withdraw():
     if amount <= current_user.balance:
         current_user.balance -= amount
         current_user.save()
-        return f"""
-            <style>
-                .toast {{
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    background-color: white;
-                    padding: 15px 25px;
-                    border-radius: 5px;
-                    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-                    z-index: 1000;
-                    animation: slideIn 0.5s, fadeOut 0.5s 2.5s forwards;
-                    border-left: 4px solid green;
-                }}
-                @keyframes slideIn {{
-                    from {{transform: translateX(100%);}}
-                    to {{transform: translateX(0);}}
-                }}
-                @keyframes fadeOut {{
-                    from {{opacity: 1;}}
-                    to {{opacity: 0;}}
-                }}
-            </style>
-            <div class="toast">Successfully withdrew ${amount:.2f} </div>
-            <script>
-                setTimeout(() => {{
-                    window.location.href = '/account';
-                }}, 1000);
-            </script>
-        """
+        flash(f'Successfully withdrew ${amount:.2f}')
     else:
-        return f"""
-            <style>
-                .toast {{
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    background-color: white;
-                    padding: 15px 25px;
-                    border-radius: 5px;
-                    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-                    z-index: 1000;
-                    animation: slideIn 0.5s, fadeOut 0.5s 2.5s forwards;
-                    border-left: 4px solid green;
-                }}
-                @keyframes slideIn {{
-                    from {{transform: translateX(100%);}}
-                    to {{transform: translateX(0);}}
-                }}
-                @keyframes fadeOut {{
-                    from {{opacity: 1;}}
-                    to {{opacity: 0;}}
-                }}
-            </style>
-            <div class="toast">Insufficient funds.</div>
-            <script>
-                setTimeout(() => {{
-                    window.location.href = '/account';
-                }}, 1000);
-            </script>
-        """
+        flash('Insufficient funds')
     return redirect(url_for('users.account'))
 
 @bp.route('/user/<int:user_id>/purchases')
 @login_required
 def user_purchases(user_id):
     if current_user.userid != user_id:
-        # flash('You can only view your own purchases.')
+        flash('You can only view your own purchases.')
         return redirect(url_for('index.index'))
 
     # Retrieve optional filter parameters from query string
@@ -596,7 +258,7 @@ def user_purchases(user_id):
     purchases = app.db.execute(query, **params)
 
     if not purchases:
-        # flash('No purchases found for your filters.')
+        flash('No purchases found for your filters.')
         return render_template('user_purchases.html', purchases=[])
 
     return render_template('user_purchases.html', purchases=purchases)
@@ -605,7 +267,7 @@ def user_purchases(user_id):
 @login_required
 def purchase_summary(user_id):
     if current_user.userid != user_id:
-        # flash('You can only view your own purchases.')
+        flash('You can only view your own purchases.')
         return redirect(url_for('index.index'))
 
     # Retrieve filter parameters from query string (passed from user_purchases or directly by the user)
@@ -673,7 +335,7 @@ def purchase_summary(user_id):
         {
             "product_id": row[0],
             "product_name": row[1],
-            "purchase_time": row[2],
+            "purchase_time": " ".join(row[2].split()[:-1]),
             "quantity": row[3],
             "status": row[4],
             "price": row[5],
@@ -878,69 +540,11 @@ def delete_product_review(product_id):
         buyerid=current_user.userid)
         
         print(f"Delete result: {result}")  # Debug print
-        return f"""
-            <style>
-                .toast {{
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    background-color: white;
-                    padding: 15px 25px;
-                    border-radius: 5px;
-                    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-                    z-index: 1000;
-                    animation: slideIn 0.5s, fadeOut 0.5s 2.5s forwards;
-                    border-left: 4px solid #f44336;
-                }}
-                @keyframes slideIn {{
-                    from {{transform: translateX(100%);}}
-                    to {{transform: translateX(0);}}
-                }}
-                @keyframes fadeOut {{
-                    from {{opacity: 1;}}
-                    to {{opacity: 0;}}
-                }}
-            </style>
-            <div class="toast">Review deleted successfully.</div>
-            <script>
-                setTimeout(() => {{
-                    window.location.href = '/product/${product_id}';
-                }}, 1000);
-            </script>
-        """
+        flash('Review deleted successfully')
 
     except Exception as e:
-        print(f"Error in delete_product_review: {str(e)}")  
-        return f"""
-            <style>
-                .toast {{
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    background-color: white;
-                    padding: 15px 25px;
-                    border-radius: 5px;
-                    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-                    z-index: 1000;
-                    animation: slideIn 0.5s, fadeOut 0.5s 2.5s forwards;
-                    border-left: 4px solid #f44336;
-                }}
-                @keyframes slideIn {{
-                    from {{transform: translateX(100%);}}
-                    to {{transform: translateX(0);}}
-                }}
-                @keyframes fadeOut {{
-                    from {{opacity: 1;}}
-                    to {{opacity: 0;}}
-                }}
-            </style>
-            <div class="toast">Error in deleting review.</div>
-            <script>
-                setTimeout(() => {{
-                    window.location.href = '/product/${product_id}';
-                }}, 1000);
-            </script>
-        """
+        print(f"Error in delete_product_review: {str(e)}")  # Debug print
+        flash('Error deleting review')
     
 @bp.route('/seller/<int:seller_id>/review', methods=['POST'])
 @login_required
@@ -953,7 +557,7 @@ def add_seller_review(seller_id):
     product_id = request.args.get('product_id')
     
     if not request.form.get('rating') or not request.form.get('review'):
-        # flash('Both rating and review are required.')
+        flash('Both rating and review are required.')
         if return_to == 'product':
             return redirect(url_for('products.product_detail', product_id=product_id))
         return redirect(url_for('users.user_profile', user_id=seller_id))
@@ -969,7 +573,7 @@ def add_seller_review(seller_id):
     print(f"Purchase check result: {purchase_check}")
     
     if not purchase_check or purchase_check[0][0] == 0:
-        # flash('You can only review sellers you have purchased from.')
+        flash('You can only review sellers you have purchased from.')
         if return_to == 'product':
             return redirect(url_for('products.product_detail', product_id=product_id))
         return redirect(url_for('users.user_profile', user_id=seller_id))
@@ -996,7 +600,7 @@ def add_seller_review(seller_id):
                 dtime=current_time,
                 userid=current_user.userid,
                 sellerid=seller_id)
-            # flash('Your seller review has been updated.')
+            flash('Your seller review has been updated.')
         else:
             # Create new review
             print("Creating new review")
@@ -1009,11 +613,11 @@ def add_seller_review(seller_id):
                 dtime=current_time,
                 rating=int(request.form['rating']),
                 review=request.form['review'])
-            # flash('Your seller review has been added successfully.')
+            flash('Your seller review has been added successfully.')
             
     except Exception as e:
         print(f"Error saving seller review: {str(e)}")
-        # flash(f'Error saving seller review: {str(e)}')
+        flash(f'Error saving seller review: {str(e)}')
     
     if return_to == 'product':
         return redirect(url_for('products.product_detail', product_id=product_id))
@@ -1038,13 +642,13 @@ def delete_seller_review(seller_id):
         buyerid=current_user.userid)
         
         print(f"Delete result: {result}")
-        # flash('Review deleted successfully')
+        flash('Review deleted successfully')
 
 
         
     except Exception as e:
         print(f"Error in delete_seller_review: {str(e)}")
-        # flash('Error deleting review')
+        flash('Error deleting review')
     
     if return_to == 'product':
         return redirect(url_for('products.product_detail', product_id=product_id))
@@ -1070,13 +674,13 @@ def toggle_seller_helpful():
                 DELETE FROM MarkedSellerReviewHelpful
                 WHERE reviewid = :reviewid AND user_id = :user_id
             ''', reviewid=reviewid, user_id=current_user.userid)
-            # flash('Removed helpful mark')
+            flash('Removed helpful mark')
         else:
             app.db.execute('''
                 INSERT INTO MarkedSellerReviewHelpful(reviewid, user_id)
                 VALUES(:reviewid, :user_id)
             ''', reviewid=reviewid, user_id=current_user.userid)
-            # flash('Marked as helpful')
+            flash('Marked as helpful')
         
         # Redirect based on where the request came from
         if return_to == 'product':
@@ -1086,7 +690,7 @@ def toggle_seller_helpful():
         
     except Exception as e:
         print(f"Error in toggle_seller_helpful: {str(e)}")
-        # flash('Error updating helpful status')
+        flash('Error updating helpful status')
         return redirect(url_for('index.index'))
 
 
@@ -1102,36 +706,8 @@ def update_account():
     """, email=email, userid=current_user.userid)
 
     if existing_email:
-        return """
-            <style>
-                .toast {
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    background-color: white;
-                    padding: 15px 25px;
-                    border-radius: 5px;
-                    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-                    z-index: 1000;
-                    animation: slideIn 0.5s, fadeOut 0.5s 2.5s forwards;
-                    border-left: 4px solid #f44336;
-                }
-                @keyframes slideIn {
-                    from {transform: translateX(100%);}
-                    to {transform: translateX(0);}
-                }
-                @keyframes fadeOut {
-                    from {opacity: 1;}
-                    to {opacity: 0;}
-                }
-            </style>
-            <div class="toast">Email address is already registered</div>
-            <script>
-                setTimeout(() => {
-                    window.location.href = '/account';
-                }, 1000);
-            </script>
-        """
+      flash('Email address is already registered.')
+      return redirect(url_for('users.account'))
 
     current_user.email = email
     current_user.address = address
@@ -1145,33 +721,5 @@ def update_account():
             WHERE userid = :userid
         """, userid=current_user.userid, email=email, address=address)
 
-    return """
-        <style>
-            .toast {
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background-color: white;
-                padding: 15px 25px;
-                border-radius: 5px;
-                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-                z-index: 1000;
-                animation: slideIn 0.5s, fadeOut 0.5s 2.5s forwards;
-                border-left: 4px solid #4CAF50;
-            }
-            @keyframes slideIn {
-                from {transform: translateX(100%);}
-                to {transform: translateX(0);}
-            }
-            @keyframes fadeOut {
-                from {opacity: 1;}
-                to {opacity: 0;}
-            }
-        </style>
-        <div class="toast">Account updated successfully!</div>
-        <script>
-            setTimeout(() => {
-                window.location.href = '/account';
-            }, 1000);
-        </script>
-    """
+    flash('Account updated successfully!')
+    return redirect(url_for('users.account'))

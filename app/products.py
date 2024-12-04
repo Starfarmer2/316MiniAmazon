@@ -231,7 +231,7 @@ def product_detail(product_id):
 @login_required
 def add_product():
     if not current_user.is_seller():
-        # flash('You do not have permission to add products.')
+        flash('You do not have permission to add products.')
         return redirect(url_for('products.manage_inventory'))
     
     form = ProductForm()
@@ -246,7 +246,7 @@ def add_product():
 
         if Product.add_product(form.prodname.data, form.price.data, form.quantity.data, form.description.data, current_user.id, 
                                image_url, form.category.data):
-            # flash('Product added successfully!')
+            flash('Product added successfully!')
             return redirect(url_for('products.manage_inventory'))
     else:
         print("DID NOT ADD PRODUCT!(Failed form validate_on_submit)")
@@ -258,11 +258,11 @@ def add_product():
 def edit_product(product_id):
     product = Product.get(product_id)
     if product is None:
-        # flash('Product not found.')
+        flash('Product not found.')
         return redirect(url_for('products.all_products'))
     
     if product.sellerid != current_user.id:
-        # flash('You do not have permission to edit this product.')
+        flash('You do not have permission to edit this product.')
         return redirect(url_for('products.product_detail', product_id=product_id))
     
     form = ProductForm()
@@ -289,7 +289,7 @@ def edit_product(product_id):
             image_url,
             form.category.data
         ):
-            # flash('Product updated successfully!')
+            flash('Product updated successfully!')
             return redirect(url_for('products.manage_inventory'))
     else:
         print("DID NOT EDIT PRODUCT!(Failed form validate_on_submit)")
@@ -300,7 +300,7 @@ def edit_product(product_id):
 @login_required
 def add_review(product_id):
     if not request.form.get('rating') or not request.form.get('review'):
-        # flash('Both rating and review are required.')
+        flash('Both rating and review are required.')
         return redirect(url_for('products.product_detail', product_id=product_id))
     
     rows = app.db.execute('''
@@ -312,7 +312,7 @@ def add_review(product_id):
     has_purchased = rows[0][0] > 0 if rows else False
     
     if not has_purchased:
-        # flash('You can only review products you have purchased.')
+        flash('You can only review products you have purchased.')
         return redirect(url_for('products.product_detail', product_id=product_id))
     
     try:
@@ -333,21 +333,29 @@ def add_review(product_id):
                 dtime=datetime.now(),
                 userid=current_user.userid,
                 productid=product_id)
-            # flash('Your review has been updated.')
+            flash('Your review has been updated.')
         else:
+            # Get next value from sequence
+            next_id = app.db.execute('''
+                SELECT nextval('productreviews_reviewid_seq')
+            ''')[0][0] 
+
+            print(next_id)
+            
             app.db.execute('''
-                INSERT INTO ProductReviews(productid, buyerid, dtime, review, rating)
-                VALUES(:productid, :userid, :dtime, :review, :rating)
+                INSERT INTO ProductReviews(reviewid, productid, buyerid, dtime, review, rating)
+                VALUES(:reviewid, :productid, :userid, :dtime, :review, :rating)
             ''',
+                reviewid=next_id,
                 productid=product_id,
                 userid=current_user.userid,
                 dtime=datetime.now(),
                 review=request.form['review'],
                 rating=int(request.form['rating']))
-            # flash('Your review has been added successfully.')
+            flash('Your review has been added successfully.')
     except Exception as e:
         print(f"Error saving review: {str(e)}")
-        # flash(f'Error saving review: {str(e)}')
+        flash(f'Error saving review: {str(e)}')
         
     return redirect(url_for('products.product_detail', product_id=product_id))
 
@@ -356,18 +364,18 @@ def add_review(product_id):
 def delete_product(product_id):
     product = Product.get(product_id)
     if product is None:
-        # flash('Product not found.')
+        flash('Product not found.')
         return redirect(url_for('products.all_products'))
     
     if product.sellerid != current_user.userid:
-        # flash('You do not have permission to delete this product.')
+        flash('You do not have permission to delete this product.')
         return redirect(url_for('products.product_detail', product_id=product_id))
     
     if Product.delete_product(product_id):
-        # flash('Product deleted successfully!')
+        flash('Product deleted successfully!')
         pass
     else:
-        # flash('Failed to delete product.')
+        flash('Failed to delete product.')
         pass
     return redirect(url_for('products.manage_inventory'))
 
@@ -494,20 +502,20 @@ def toggle_helpful():
                 DELETE FROM MarkedProductReviewHelpful
                 WHERE reviewid = :reviewid AND user_id = :user_id
             ''', reviewid=reviewid, user_id=current_user.userid)
-            # flash('Removed helpful mark')
+            flash('Removed helpful mark')
         else:
             app.db.execute('''
                 INSERT INTO MarkedProductReviewHelpful(reviewid, user_id)
                 VALUES(:reviewid, :user_id)
             ''', reviewid=reviewid, user_id=current_user.userid)
-            # flash('Marked as helpful')
+            flash('Marked as helpful')
         
         product_id = request.form.get('product_id')  # Add this to get product_id
         return redirect(url_for('products.product_detail', product_id=product_id))
         
     except Exception as e:
         print(f"Error in toggle_helpful: {str(e)}")
-        # flash('Error updating helpful status')
+        flash('Error updating helpful status')
         return redirect(url_for('index.index'))
 
 
