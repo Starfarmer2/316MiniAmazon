@@ -25,8 +25,10 @@ def add_to_cart(product_id):
     success = Cart.add_item(current_user.userid, product_id, product.prodname, quantity, product.price, status='in_cart')
     if success:
         # flash('Item added to cart successfully.')
+        pass
     else:
         # flash('Error adding item to cart.')
+        pass
     
     return redirect(url_for('products.all_products'))
 
@@ -36,8 +38,10 @@ def remove_from_cart(productid):
     success = Cart.remove_item(current_user.userid, productid)
     if success:
         # flash('Item removed from cart successfully.')
+        pass
     else:
         # flash('Error removing item from cart.')
+        pass
     return redirect(url_for('cart.view_cart'))
 
 @bp.route('/view_cart')
@@ -56,8 +60,10 @@ def update_cart_item(productid):
     success = Cart.update_item(current_user.userid, productid, quantity)
     if success:
         # flash('Cart updated successfully.')
+        pass
     else:
         # flash('Error updating cart.')
+        pass
     return redirect(url_for('cart.view_cart'))
 
 @bp.route('/clear_cart', methods=['POST'])
@@ -66,8 +72,10 @@ def clear_cart():
     success = Cart.clear_cart(current_user.userid)
     if success:
         # flash('Cart cleared successfully.')
+        pass
     else:
         # flash('Error clearing cart.')
+        pass
     return redirect(url_for('cart.view_cart'))
 
 # New route to save an item for later
@@ -78,8 +86,10 @@ def save_for_later(product_id):
     success = Cart.update_item_status(current_user.userid, product_id, status='saved')
     if success:
         # flash('Item saved for later.')
+        pass
     else:
         # flash('Error saving item for later.')
+        pass
     return redirect(url_for('cart.view_cart'))
 
 # New route to move an item back to the cart
@@ -90,6 +100,8 @@ def move_to_cart(product_id):
     success = Cart.update_item_status(current_user.userid, product_id, status='in_cart')
     if success:
         # flash('Item moved back to cart.')
+        pass
     else:
         # flash('Error moving item back to cart.')
+        pass
     return redirect(url_for('cart.view_cart'))
