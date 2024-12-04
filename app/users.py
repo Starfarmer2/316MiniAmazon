@@ -632,6 +632,8 @@ def delete_seller_review(seller_id):
         
         print(f"Delete result: {result}")
         flash('Review deleted successfully')
+
+
         
     except Exception as e:
         print(f"Error in delete_seller_review: {str(e)}")
@@ -684,13 +686,9 @@ def toggle_seller_helpful():
 @bp.route('/update_account', methods=['POST'])
 @login_required
 def update_account():
-    """
-    Handle the form submission for updating user's email and address without CSRF protection.
-    """
     email = request.form.get('email')
     address = request.form.get('address')
 
-    # Check if email already exists for a different user
     existing_email = app.db.execute("""
         SELECT userid FROM Users 
         WHERE email = :email AND userid != :userid
@@ -698,18 +696,40 @@ def update_account():
 
     if existing_email:
         return """
+            <style>
+                .toast {
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background-color: white;
+                    padding: 15px 25px;
+                    border-radius: 5px;
+                    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                    z-index: 1000;
+                    animation: slideIn 0.5s, fadeOut 0.5s 2.5s forwards;
+                    border-left: 4px solid #f44336;
+                }
+                @keyframes slideIn {
+                    from {transform: translateX(100%);}
+                    to {transform: translateX(0);}
+                }
+                @keyframes fadeOut {
+                    from {opacity: 1;}
+                    to {opacity: 0;}
+                }
+            </style>
+            <div class="toast">Email address is already registered</div>
             <script>
-                alert('Email address is already registered');
-                window.location.href = '/account';
+                setTimeout(() => {
+                    window.location.href = '/account';
+                }, 3000);
             </script>
         """
 
-    # Update user information
     current_user.email = email
     current_user.address = address
     current_user.save()
 
-    # Update seller information if user is a seller
     if current_user.is_seller():
         app.db.execute("""
             UPDATE Sellers
@@ -719,8 +739,32 @@ def update_account():
         """, userid=current_user.userid, email=email, address=address)
 
     return """
+        <style>
+            .toast {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background-color: white;
+                padding: 15px 25px;
+                border-radius: 5px;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                z-index: 1000;
+                animation: slideIn 0.5s, fadeOut 0.5s 2.5s forwards;
+                border-left: 4px solid #4CAF50;
+            }
+            @keyframes slideIn {
+                from {transform: translateX(100%);}
+                to {transform: translateX(0);}
+            }
+            @keyframes fadeOut {
+                from {opacity: 1;}
+                to {opacity: 0;}
+            }
+        </style>
+        <div class="toast">Account updated successfully!</div>
         <script>
-            alert('Account updated successfully!');
-            window.location.href = '/account';
+            setTimeout(() => {
+                window.location.href = '/account';
+            }, 3000);
         </script>
     """
