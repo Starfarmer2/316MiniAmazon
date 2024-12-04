@@ -335,7 +335,7 @@ def purchase_summary(user_id):
         {
             "product_id": row[0],
             "product_name": row[1],
-            "purchase_time": row[2],
+            "purchase_time": " ".join(row[2].split()[:-1]),
             "quantity": row[3],
             "status": row[4],
             "price": row[5],
