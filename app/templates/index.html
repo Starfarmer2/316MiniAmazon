@@ -168,27 +168,27 @@
         <div class="team-grid" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 20px;">
             <!-- Overlord -->
             <div class="team-member" style="width: 200px;">
-                <img src="{{ url_for('static', filename='static/images/overlord.jpg') }}" alt="Overlord" style="width: 100%; border-radius: 10px;">
+                <img src="{{ url_for('static', filename='images/overlord.jpg') }}" alt="Overlord" style="width: 100%; border-radius: 10px;">
                 <p style="font-weight: bold; margin-top: 10px;">Overlord</p>
             </div>
             <!-- Two Chairmen -->
             <div class="team-member" style="width: 200px;">
-                <img src="{{ url_for('static', filename='static/images/chairman1.jpg') }}" alt="Chairman" style="width: 100%; border-radius: 10px;">
+                <img src="{{ url_for('static', filename='images/chairman1.jpg') }}" alt="Chairman" style="width: 100%; border-radius: 10px;">
                 <p style="font-weight: bold; margin-top: 10px;">Chairman</p>
             </div>
             <div class="team-member" style="width: 200px;">
-                <img src="{{ url_for('static', filename='static/images/chairman2.jpg') }}" alt="Chairman" style="width: 100%; border-radius: 10px;">
+                <img src="{{ url_for('static', filename='images/chairman2.jpg') }}" alt="Chairman" style="width: 100%; border-radius: 10px;">
                 <p style="font-weight: bold; margin-top: 10px;">Chairman</p>
             </div>
             <!-- Jeff Bezos -->
             <div class="team-member" style="width: 200px;">
-                <img src="{{ url_for('static', filename='static/images/jeff_bezos.jpg') }}" alt="Jeff Bezos" style="width: 100%; border-radius: 10px;">
+                <img src="{{ url_for('static', filename='images/jeff_bezos.jpg') }}" alt="Jeff Bezos" style="width: 100%; border-radius: 10px;">
                 <p style="font-weight: bold; margin-top: 10px;">Jeff Bezos</p>
             </div>
             <!-- Five Warehouse Workers -->
             {% for i in range(1, 6) %}
             <div class="team-member" style="width: 200px;">
-                <img src="{{ url_for('static', filename='static/images/warehouse_worker_' ~ i ~ '.jpg') }}" alt="Warehouse Worker {{ i }}" style="width: 100%; border-radius: 10px;">
+                <img src="{{ url_for('static', filename='images/warehouse_worker_' ~ i ~ '.jpg') }}" alt="Warehouse Worker {{ i }}" style="width: 100%; border-radius: 10px;">
                 <p style="font-weight: bold; margin-top: 10px;">Warehouse Worker {{ i }}</p>
             </div>
             {% endfor %}
