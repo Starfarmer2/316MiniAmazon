@@ -16,7 +16,11 @@ Daniel Zeng – Seller Guru
 Abhishek Chataut – Carts Guru
 
 Muchang Bahng – Social Guru
-
+1. Added `MarkedProductReviewHelpful` and `MarkedSellerReviewHelpful` schemas.
+2. Implemented helpful mark count and ordering of reviews by top 3 helpful followed by reverse chronological order. 
+3. Created all fake data generating methods. 
+4. Polished the UI of the product detail page and reviews. 
+5. Added and debugged flash updates to be shown after most interactions with the website. 
 
 Jasper Hu – Products Guru
 
