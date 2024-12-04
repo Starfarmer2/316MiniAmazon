@@ -148,6 +148,7 @@ var baseImageUrl = "{{ url_for('products.serve_product_image', filename='') }}";
                         <p>Quantity: ${purchase.quantity}</p>
                         <p>Status: ${purchase.status ? 'Completed' : 'Pending'}</p>
                         <p>Seller: ${purchase.seller_name}</p>
+                        <a href="/product/${purchase.product_id}" class="btn btn-primary">View Details</a>
                     </div>
                 `;
                     purchaseGrid.append(purchaseItem);
