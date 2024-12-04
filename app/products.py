@@ -422,15 +422,29 @@ def filter_products():
     else:
         query += ' ORDER BY p.productid'
 
-    query = f"SELECT p.*, pr.avg_rating FROM ({query}) AS p JOIN (SELECT productid, AVG(rating) AS avg_rating FROM ProductReviews GROUP BY productid) AS pr ON p.productid = pr.productid ORDER BY pr.avg_rating DESC"
-    if order_by == 'sales':
-        query = f"SELECT * FROM ({query}) AS p JOIN (SELECT productid, COUNT(*) AS sales FROM Purchases GROUP BY productid) AS o ON p.productid = o.productid ORDER BY o.sales DESC"
-    elif order_by == 'quantity':
-        query = f"SELECT * FROM ({query}) AS p ORDER BY p.quantity DESC"
-    elif order_by == 'rating':
-        query = f"SELECT * FROM ({query}) AS p ORDER BY p.avg_rating DESC"
-    elif order_by == 'price':
-        query = f"SELECT * FROM ({query}) AS p ORDER BY p.price DESC"
+    query = '''
+        SELECT p.*, COALESCE(pr.avg_rating, 0) AS avg_rating 
+        FROM ({}) AS p 
+        LEFT JOIN (
+            SELECT productid, AVG(rating) AS avg_rating 
+            FROM ProductReviews 
+            GROUP BY productid
+        ) AS pr 
+        ON p.productid = pr.productid
+    '''.format(query)
+
+    order_by_map = {
+        'sales': "ORDER BY o.sales DESC",
+        'quantity': "ORDER BY p.quantity DESC",
+        'rating': "ORDER BY p.avg_rating DESC",
+        'price': "ORDER BY p.price DESC"
+    }
+
+    # Get the corresponding ORDER BY clause from the map, or a default
+    order_by_clause = order_by_map.get(order_by, "ORDER BY p.productid")
+
+    # Modify the query to include the correct ORDER BY clause
+    query = f"SELECT * FROM ({query}) AS p {order_by_clause}"
 
     products = app.db.execute(query, **params)
     
