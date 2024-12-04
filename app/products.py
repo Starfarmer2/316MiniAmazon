@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, render_template, send_file, redirect, url_for, flash, request, abort, current_app as app
 from flask_login import current_user, login_required
 from flask_wtf import FlaskForm
-from wtforms import StringField, FloatField, IntegerField, TextAreaField, SubmitField
+from wtforms import StringField, FloatField, IntegerField, TextAreaField, SubmitField, FileField
 from wtforms.validators import DataRequired, NumberRange
 from .models.product import Product
 from .models.product_review import ProductReview
@@ -9,6 +9,8 @@ from .models.user import User
 from math import ceil
 import os
 from datetime import datetime
+from werkzeug.utils import secure_filename
+
 
 bp = Blueprint('products', __name__)
 PRODUCTS_PER_PAGE = 20
@@ -21,6 +23,7 @@ class ProductForm(FlaskForm):
     image_path = StringField('Image Path') 
     category = StringField('Category') 
     submit = SubmitField('Add Product')
+    image_file = FileField('Image File')
 
 @bp.route('/products')
 def all_products():
@@ -233,7 +236,16 @@ def add_product():
     
     form = ProductForm()
     if form.validate_on_submit():
-        if Product.add_product(form.prodname.data, form.price.data, form.quantity.data, form.description.data, current_user.id, form.image_path.data, form.category.data):
+
+        image = form.image_file.data
+        image_url = os.path.join('images', secure_filename(form.image_path.data))
+        save_image_url = os.path.join(app.config['UPLOAD_FOLDER'], image_url)
+        if image:
+            image_path = os.path.join(save_image_url)
+            image.save(image_path)
+
+        if Product.add_product(form.prodname.data, form.price.data, form.quantity.data, form.description.data, current_user.id, 
+                               image_url, form.category.data):
             flash('Product added successfully!')
             return redirect(url_for('products.manage_inventory'))
     else:
@@ -255,13 +267,26 @@ def edit_product(product_id):
     
     form = ProductForm()
     if form.validate_on_submit():
+        # Get the image from the form
+        image = form.image_file.data
+        image_url = os.path.join('images', secure_filename(form.image_path.data))
+        
+        if image:
+            image_path = os.path.join(app.config['UPLOAD_FOLDER'], image_url)
+            image.save(image_path)
+        
+        # If no new image is uploaded, keep the existing image URL
+        if not image_url:
+            image_url = product.image_url  # Keep the old image URL if no new image is provided
+
+        # Update the product with new details (including image URL if changed)
         if Product.update_product(
             product_id, 
             form.prodname.data, 
             form.price.data, 
             form.quantity.data, 
             form.description.data, 
-            form.image_path.data,
+            image_url,
             form.category.data
         ):
             flash('Product updated successfully!')
