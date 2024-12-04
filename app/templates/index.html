@@ -165,36 +165,10 @@
     </div>
 
     <div id="B_section">
-        <p class="B_section_title">Products for sale:</p>
-        <div class="product-grid">
-            {% for product in avail_products %}
-                <div class="product-item">
-                    <p class="product-name">{{ product.prodname }}</p>
-                    <p>ID: {{ product.productid }}</p>
-                    <p class="product-price">${{ product.price }}</p>
-                </div>
-            {% endfor %}
-        </div>
+
     </div>
 
-    <div class="space"></div>
 
-    <div id="B_section">
-        {% if current_user.is_authenticated %}
-            <h2 class="B_section_title">Your recent purchases:</h2>
-            <div class="purchase-grid">
-                {% for purchase in purchase_history %}
-                    <div class="purchase-item">
-                        <p class="purchase-id">Purchase ID: {{ purchase.id }}</p>
-                        <p>Product: {{ purchase.pid }}</p>
-                        <p class="purchase-time">{{ purchase.time_purchased }}</p>
-                    </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <p><a href="{{ url_for('users.login') }}">Log in</a> to see your purchase history!</p>
-        {% endif %}
-    </div>
 
     <div id="footer">
         <p id="footer_text"></p>
