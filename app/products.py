@@ -436,7 +436,7 @@ def filter_products():
     '''.format(query)
 
     order_by_map = {
-        'sales': "ORDER BY o.sales DESC",
+        'sales': "JOIN (SELECT productid, COUNT(*) AS sales FROM Purchases GROUP BY productid) AS o ON p.productid = o.productid ORDER BY o.sales DESC",
         'quantity': "ORDER BY p.quantity DESC",
         'rating': "ORDER BY p.avg_rating DESC",
         'price': "ORDER BY p.price DESC"

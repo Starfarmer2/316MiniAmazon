@@ -156,9 +156,8 @@
 
         <div class="profile-section">
             <h2>My Profile</h2>
-            
                 <img 
-                    src="{{ current_user.profile_photo or url_for('static', filename='images/no_profile_pic_available.png') }}" 
+                    src="{{ url_for('users.serve_profile_image', filename='profile_photos/user_{}.jpg'.format(current_user.userid)) }}" 
                     alt="Profile Photo" 
                     class="profile-photo" 
                     style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; margin-bottom: 15px;"

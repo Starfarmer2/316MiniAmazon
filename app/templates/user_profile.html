@@ -275,6 +275,12 @@
         <div class="profile-section">
             <h2>User Information</h2>
             <ul class="list-group">
+                <img 
+                src="{{ url_for('users.serve_profile_image', filename='profile_photos/user_{}.jpg'.format(profile_user.userid)) }}" 
+                alt="Profile Photo" 
+                class="profile-photo" 
+                style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; margin-bottom: 15px;"
+                onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/default-profile.png') }}';">
                 <li class="list-group-item"><strong>User ID:</strong> {{ profile_user.userid }}</li>
                 <li class="list-group-item"><strong>Name:</strong> 
                     <a href="{{ url_for('users.user_profile', user_id=profile_user.userid) }}" class="user-link">

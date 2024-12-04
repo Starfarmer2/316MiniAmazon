@@ -1,4 +1,4 @@
-from flask import render_template, jsonify, redirect, url_for, flash, request, abort, current_app as app
+from flask import render_template, send_file, jsonify, redirect, url_for, flash, request, abort, current_app as app
 from werkzeug.urls import url_parse
 from flask_login import login_user, logout_user, current_user, login_required
 from flask_paginate import Pagination, get_page_parameter
@@ -14,7 +14,7 @@ from collections import namedtuple
 from datetime import datetime
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask import flash, redirect, url_for, request
-
+import os
 from flask import Blueprint
 bp = Blueprint('users', __name__)
 PRODUCTS_PER_PAGE = 20
@@ -25,6 +25,17 @@ class LoginForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired()])
     remember_me = BooleanField('Remember Me')
     submit = SubmitField('Sign In')
+
+@bp.route('/profile_image/<path:filename>')
+def serve_profile_image(filename):
+    try:
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        return send_file(file_path)
+    except FileNotFoundError:
+        return redirect(url_for('static', filename='images/default-profile.png')), 303
+    except Exception as e:
+        app.logger.error(f"Error serving image {filename}: {str(e)}")
+        return redirect(url_for('static', filename='images/default-profile.png')), 303
 
 
 @bp.route('/login', methods=['GET', 'POST'])
