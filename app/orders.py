@@ -140,9 +140,99 @@ def mark_fulfilled(product_id, buyer_id, dtime):
         
         if rows_affected == 0:
             flash("No matching order was found or already fulfilled.", "warning")
+            return """
+                <style>
+                    .toast {
+                        position: fixed;
+                        top: 20px;
+                        right: 20px;
+                        background-color: white;
+                        padding: 15px 25px;
+                        border-radius: 5px;
+                        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                        z-index: 1000;
+                        animation: slideIn 0.5s, fadeOut 0.5s 2.5s forwards;
+                        border-left: 4px solid #f44336;
+                    }
+                    @keyframes slideIn {
+                        from {transform: translateX(100%);}
+                        to {transform: translateX(0);}
+                    }
+                    @keyframes fadeOut {
+                        from {opacity: 1;}
+                        to {opacity: 0;}
+                    }
+                </style>
+                <div class="toast">No matching order was found or already fulfilled.</div>
+                <script>
+                    setTimeout(() => {
+                        window.location.href = '/order_fulfillment';
+                    }, 1000);
+                </script>
+            """
         else:
             flash("Order item marked as fulfilled successfully!", "success")
+            return """
+                <style>
+                    .toast {
+                        position: fixed;
+                        top: 20px;
+                        right: 20px;
+                        background-color: white;
+                        padding: 15px 25px;
+                        border-radius: 5px;
+                        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                        z-index: 1000;
+                        animation: slideIn 0.5s, fadeOut 0.5s 2.5s forwards;
+                        border-left: 4px solid #4CAF50;
+                    }
+                    @keyframes slideIn {
+                        from {transform: translateX(100%);}
+                        to {transform: translateX(0);}
+                    }
+                    @keyframes fadeOut {
+                        from {opacity: 1;}
+                        to {opacity: 0;}
+                    }
+                </style>
+                <div class="toast">Order item marked as fulfilled successfully!</div>
+                <script>
+                    setTimeout(() => {
+                        window.location.href = '/order_fulfillment';
+                    }, 1000);
+                </script>
+            """
 
     except Exception as e:
         print(f"Error marking order as fulfilled: {e}")
         flash("Failed to mark order item as fulfilled.", "danger")
+        return """
+            <style>
+                .toast {
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background-color: white;
+                    padding: 15px 25px;
+                    border-radius: 5px;
+                    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                    z-index: 1000;
+                    animation: slideIn 0.5s, fadeOut 0.5s 2.5s forwards;
+                    border-left: 4px solid #f44336;
+                }
+                @keyframes slideIn {
+                    from {transform: translateX(100%);}
+                    to {transform: translateX(0);}
+                }
+                @keyframes fadeOut {
+                    from {opacity: 1;}
+                    to {opacity: 0;}
+                }
+            </style>
+            <div class="toast">Failed to mark order item as fulfilled.</div>
+            <script>
+                setTimeout(() => {
+                    window.location.href = '/order_fulfillment';
+                }, 1000);
+            </script>
+        """
