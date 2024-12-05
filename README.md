@@ -35,5 +35,5 @@ Everybody prefers a group grading.
 
 Link to GitHub Repo: https://github.com/Starfarmer2/316MiniAmazon
 
-Link to Video
+Link to Video: https://youtu.be/cWb1-RL9Uj4
 
