@@ -27,6 +27,9 @@ Muchang Bahng – Social Guru
 5. Added and debugged flash updates to be shown after most interactions with the website. 
 
 Jasper Hu – Products Guru
+1. Added products page sort by average product rating, quantity in stock, sales, and price
+2. Added product search by product name, seller name, and category; modified SQL queries to allow simultaneous sorting and search filters
+3. Modified website layout
 
 ## Prefers 
 Everybody prefers a group grading. 
